@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35013.160
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trickler-API", "Trickler-API\Trickler-API.csproj", "{9ABB48C5-D098-4D08-BFB7-CCEA69352E44}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Trickler-API.Tests", "Trickler-API.Tests\Trickler-API.Tests.csproj", "{88287A77-6729-483F-BA3D-D91ACE6A491A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9ABB48C5-D098-4D08-BFB7-CCEA69352E44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9ABB48C5-D098-4D08-BFB7-CCEA69352E44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9ABB48C5-D098-4D08-BFB7-CCEA69352E44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9ABB48C5-D098-4D08-BFB7-CCEA69352E44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88287A77-6729-483F-BA3D-D91ACE6A491A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88287A77-6729-483F-BA3D-D91ACE6A491A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88287A77-6729-483F-BA3D-D91ACE6A491A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88287A77-6729-483F-BA3D-D91ACE6A491A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7E54390F-A05B-475E-8687-9840A6D4C167}
+	EndGlobalSection
+EndGlobal
