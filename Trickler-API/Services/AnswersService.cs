@@ -29,7 +29,8 @@ namespace Trickler_API.Services
             // also the EF.ILike function doesn't seem to work either 
             var match = await _context.Answers
                 .Where(a => a.TricklerId == trickleId)
-                .AnyAsync(a => a.AnswerText != null && a.AnswerText.ToLower() == normalizedAnswer);
+                .AnyAsync(a => a.AnswerText is not null 
+                && a.AnswerText.ToLower() == normalizedAnswer);
 #pragma warning restore CA1862
 
             return match;
