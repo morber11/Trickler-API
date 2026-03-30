@@ -17,7 +17,7 @@ namespace Trickler_API.Tests.Services
                 .Options;
 
             _context = new TricklerDbContext(options);
-            _service = new AnswersService(_context);
+            _service = new AnswersService(_context, new AvailabilityService(), null, TimeProvider.System);
         }
 
         public void Dispose()
