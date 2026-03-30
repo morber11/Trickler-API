@@ -36,7 +36,7 @@ namespace Trickler_API.DTO
         int Id,
         string Title,
         string Text,
-        IEnumerable<AnswerDto> Answers,
+        IEnumerable<AnswerDto>? Answers,
         AvailabilityDto? Availability
     );
 }
