@@ -11,7 +11,7 @@ namespace Trickler_API.Exceptions
         public int TrickleId { get; } = trickleId;
     }
 
-    public class ValidationException(string message) : TricklerException(message)
+    public class AppValidationException(string message) : TricklerException(message)
     {
     }
 

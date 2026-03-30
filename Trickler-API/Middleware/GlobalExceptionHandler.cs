@@ -22,7 +22,7 @@ namespace Trickler_API.Middleware
                     "Trickle Not Found",
                     ex.Message
                 ),
-                ValidationException ex => (
+                AppValidationException ex => (
                     StatusCodes.Status400BadRequest,
                     "Validation Error",
                     ex.Message

@@ -6,7 +6,7 @@ namespace Trickler_API.Validators
 {
     public class CreateTrickleRequestValidator : AbstractValidator<CreateTrickleRequest>
     {
-        public CreateTrickleRequestValidator()
+        public CreateTrickleRequestValidator(IValidator<AvailabilityDto> availabilityValidator)
         {
             RuleFor(x => x.Title)
                 .NotEmpty().WithMessage("Title is required")
@@ -20,15 +20,15 @@ namespace Trickler_API.Validators
                 .Must(answers => answers is null || answers.All(a => a is not null && !string.IsNullOrWhiteSpace(a.Answer)))
                 .WithMessage("Answers cannot contain empty values");
 
-            RuleFor(x => x.Availability)
-                .SetValidator(new AvailabilityDtoValidator()!)
+            RuleFor(x => x.Availability!)
+                .SetValidator(availabilityValidator)
                 .When(x => x.Availability is not null);
         }
     }
 
     public class UpdateTrickleRequestValidator : AbstractValidator<UpdateTrickleRequest>
     {
-        public UpdateTrickleRequestValidator()
+        public UpdateTrickleRequestValidator(IValidator<AvailabilityDto> availabilityValidator)
         {
             RuleFor(x => x.Title)
                 .NotEmpty().WithMessage("Title is required")
@@ -42,8 +42,8 @@ namespace Trickler_API.Validators
                 .Must(answers => answers is null || answers.All(a => a is not null && !string.IsNullOrWhiteSpace(a.Answer)))
                 .WithMessage("Answers cannot contain empty values");
 
-            RuleFor(x => x.Availability)
-                .SetValidator(new AvailabilityDtoValidator()!)
+            RuleFor(x => x.Availability!)
+                .SetValidator(availabilityValidator)
                 .When(x => x.Availability is not null);
         }
     }
