@@ -6,12 +6,14 @@ using Trickler_API.Models;
 namespace Trickler_API.Services
 {
     public class AnswersService(TricklerDbContext context,
-        AvailabilityService? availabilityService = null,
-        IConfiguration? configuration = null)
+        AvailabilityService availabilityService,
+        IConfiguration? configuration,
+        TimeProvider timeProvider)
     {
         private readonly TricklerDbContext _context = context;
-        private readonly AvailabilityService _availabilityService = availabilityService ?? new AvailabilityService();
+        private readonly AvailabilityService _availabilityService = availabilityService;
         private readonly IConfiguration? _configuration = configuration;
+        private readonly TimeProvider _timeProvider = timeProvider;
 
         public record SubmitAnswerResult(bool Correct, string? RewardCode, int AttemptsLeft);
 
@@ -42,13 +44,13 @@ namespace Trickler_API.Services
             if (string.IsNullOrWhiteSpace(answer)) return new SubmitAnswerResult(false, null, 0);
 
             var trickle = await _context.Trickles.Include(t => t.Availability)
-                .FirstOrDefaultAsync(t => t.Id == trickleId) 
+                .FirstOrDefaultAsync(t => t.Id == trickleId)
                 ?? throw new TrickleNotFoundException(trickleId);
 
-            // maybe use timeprovider ???
-            var today = DateTime.UtcNow.Date;
-            var currentDateOnly = DateOnly.FromDateTime(DateTime.UtcNow);
-            var currentDayOfWeek = DateTime.UtcNow.DayOfWeek.ToString();
+            var utcNow = _timeProvider.GetUtcNow().UtcDateTime;
+            var today = utcNow.Date;
+            var currentDateOnly = DateOnly.FromDateTime(utcNow);
+            var currentDayOfWeek = utcNow.DayOfWeek.ToString();
 
             if (!_availabilityService.IsAvailable(trickle.Availability, currentDateOnly, currentDayOfWeek))
             {
@@ -95,14 +97,14 @@ namespace Trickler_API.Services
 
             userTrickle.AttemptsToday++;
             userTrickle.AttemptCountTotal++;
-            userTrickle.LastAttemptAt = DateTime.UtcNow;
+            userTrickle.LastAttemptAt = _timeProvider.GetUtcNow().UtcDateTime;
 
             var isCorrect = await VerifyAnswerAsync(trickleId, answer);
 
             if (isCorrect && !userTrickle.IsSolved)
             {
                 userTrickle.IsSolved = true;
-                userTrickle.SolvedAt = DateTime.UtcNow;
+                userTrickle.SolvedAt = _timeProvider.GetUtcNow().UtcDateTime;
                 userTrickle.RewardCode = Guid.NewGuid().ToString("N");
             }
 
