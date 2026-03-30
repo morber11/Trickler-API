@@ -34,5 +34,10 @@ namespace Trickler_API.Constants
             public const string TrickleNotFound = "Trickle with ID {0} not found";
             public const string TextIsRequired = "Text is required";
         }
+
+        public static class Answers
+        {
+            public const string AttemptLimitReached = "Attempt limit reached for today";
+        }
     }
 }

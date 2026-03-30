@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 using Trickler_API.Constants;
+using Trickler_API.DTO;
 using Trickler_API.Services;
 
 namespace Trickler_API.Controllers
@@ -68,13 +69,13 @@ namespace Trickler_API.Controllers
                 // logging handled in service; CreatedUser may be null on failure
             }
 
-            return Ok(new
-            {
-                message = MessageConstants.Auth.OidcLoginSuccessful,
+            return Ok(new LoginResponse(
+                MessageConstants.Auth.OidcLoginSuccessful,
                 userId,
                 email,
-                returnUrl = returnUrl ?? "/"
-            });
+                "oidc",
+                returnUrl ?? "/",
+                null));
         }
     }
 }

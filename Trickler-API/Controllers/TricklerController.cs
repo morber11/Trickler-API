@@ -55,7 +55,7 @@ namespace Trickler_API.Controllers
 
             if (trickle is null)
             {
-                return NotFound(new { message = string.Format(MessageConstants.Trickle.TrickleNotFound, id) });
+                return NotFound(new MessageResponse(string.Format(MessageConstants.Trickle.TrickleNotFound, id)));
             }
 
             return Ok(trickle);

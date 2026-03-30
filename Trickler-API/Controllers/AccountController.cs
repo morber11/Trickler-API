@@ -11,6 +11,7 @@ using Trickler_API.Services;
 
 namespace Trickler_API.Controllers
 {
+    [ApiController]
     [Route("api/v1/[controller]")]
     [EnableRateLimiting("sliding")]
     public class AccountController(
@@ -31,16 +32,16 @@ namespace Trickler_API.Controllers
         {
             if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
             {
-                return BadRequest(new { message = MessageConstants.Account.EmailAndPasswordRequired });
+                return BadRequest(new MessageResponse(MessageConstants.Account.EmailAndPasswordRequired));
             }
 
             var (Succeeded, ErrorMessage, CreatedUser) = await _accountService.RegisterAsync(request.Email, request.Password);
             if (!Succeeded)
             {
-                return BadRequest(new { message = MessageConstants.Account.RegistrationFailed, errors = ErrorMessage });
+                return BadRequest(new ErrorResponse(MessageConstants.Account.RegistrationFailed, ErrorMessage));
             }
 
-            return Ok(new { message = MessageConstants.Account.UserRegisteredSuccessfully, userId = CreatedUser?.Id });
+            return Ok(new RegisterResponse(MessageConstants.Account.UserRegisteredSuccessfully, CreatedUser?.Id));
         }
 
         /// <summary>
@@ -55,27 +56,25 @@ namespace Trickler_API.Controllers
         {
             if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
             {
-                return BadRequest(new { message = MessageConstants.Account.EmailAndPasswordRequired });
+                return BadRequest(new MessageResponse(MessageConstants.Account.EmailAndPasswordRequired));
             }
 
             var (succeeded, errorMessage, user, roles) = await _accountService.ValidateAndSignInAsync(request.Email, request.Password);
             if (!succeeded)
             {
                 _logger.LogWarning("Failed login attempt for email: {Email}", request.Email);
-                return Unauthorized(new { message = errorMessage ?? MessageConstants.Auth.InvalidCredentials });
+                return Unauthorized(new MessageResponse(errorMessage ?? MessageConstants.Auth.InvalidCredentials));
             }
 
             _logger.LogInformation("User {Email} logged in successfully", request.Email);
 
-            return Ok(new
-            {
-                message = MessageConstants.Auth.LoginSuccessful,
-                userId = user!.Id,
-                email = user.Email,
-                authenticationMethod = "local",
-                returnUrl = returnUrl ?? "/",
-                roles
-            });
+            return Ok(new LoginResponse(
+                MessageConstants.Auth.LoginSuccessful,
+                user!.Id,
+                user.Email,
+                "local",
+                returnUrl ?? "/",
+                roles));
         }
 
         /// <summary>
@@ -89,7 +88,7 @@ namespace Trickler_API.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrWhiteSpace(userId))
             {
-                return Unauthorized(new { message = MessageConstants.Auth.UserNotAuthenticated });
+                return Unauthorized(new MessageResponse(MessageConstants.Auth.UserNotAuthenticated));
             }
 
             var profile = await _accountService.GetProfileAsync(User);
@@ -108,27 +107,27 @@ namespace Trickler_API.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrWhiteSpace(userId))
             {
-                return Unauthorized(new { message = MessageConstants.Auth.UserNotAuthenticated });
+                return Unauthorized(new MessageResponse(MessageConstants.Auth.UserNotAuthenticated));
             }
 
             var oidcSub = User.FindFirst("sub")?.Value;
             if (!string.IsNullOrEmpty(oidcSub))
             {
-                return BadRequest(new { message = MessageConstants.Account.CannotChangePasswordForOidcUsers });
+                return BadRequest(new MessageResponse(MessageConstants.Account.CannotChangePasswordForOidcUsers));
             }
 
             if (string.IsNullOrWhiteSpace(request.OldPassword) || string.IsNullOrWhiteSpace(request.NewPassword))
             {
-                return BadRequest(new { message = MessageConstants.Account.OldAndNewPasswordRequired });
+                return BadRequest(new MessageResponse(MessageConstants.Account.OldAndNewPasswordRequired));
             }
 
             var (Succeeded, ErrorMessage) = await _accountService.ChangePasswordAsync(userId, request.OldPassword, request.NewPassword);
             if (!Succeeded)
             {
-                return BadRequest(new { message = MessageConstants.Account.FailedToChangePassword, errors = ErrorMessage });
+                return BadRequest(new ErrorResponse(MessageConstants.Account.FailedToChangePassword, ErrorMessage));
             }
 
-            return Ok(new { message = MessageConstants.Account.PasswordChangedSuccessfully });
+            return Ok(new MessageResponse(MessageConstants.Account.PasswordChangedSuccessfully));
         }
 
         /// <summary>

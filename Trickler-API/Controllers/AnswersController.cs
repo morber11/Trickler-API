@@ -26,7 +26,7 @@ namespace Trickler_API.Controllers
         public async Task<IActionResult> VerifyAnswer([FromBody] VerifyAnswerRequest request)
         {
             var trickleExists = await _answersService.VerifyAnswerAsync(request.TrickleId, request.Answer);
-            return Ok(new { correct = trickleExists });
+            return Ok(new VerifyAnswerResponse(trickleExists));
         }
 
         /// <summary>
@@ -39,14 +39,14 @@ namespace Trickler_API.Controllers
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrWhiteSpace(userId))
             {
-                return Unauthorized(new { message = "User not authenticated" });
+                return Unauthorized(new MessageResponse(MessageConstants.Auth.UserNotAuthenticated));
             }
 
             var result = await _answersService.SubmitAnswerAsync(request.TrickleId, request.Answer, userId);
 
             if (result.AttemptsLeft <= 0 && !result.Correct)
             {
-                return StatusCode(StatusCodes.Status429TooManyRequests, new { message = "Attempt limit reached for today" });
+                return StatusCode(StatusCodes.Status429TooManyRequests, new MessageResponse(MessageConstants.Answers.AttemptLimitReached));
             }
 
             return Ok(new SubmitAnswerResponse(result.Correct, result.RewardCode, result.AttemptsLeft));
