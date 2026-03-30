@@ -39,5 +39,24 @@ namespace Trickler_API.Constants
         {
             public const string AttemptLimitReached = "Attempt limit reached for today";
         }
+
+        public static class Validation
+        {
+            public const string TitleRequired = "Title is required";
+            public const string TitleMaxLength = "Title cannot exceed 1000 characters";
+
+            public const string TextRequired = "Text is required";
+            public const string TextMaxLength = "Text cannot exceed 1000 characters";
+
+            public const string AnswersCannotContainEmptyValues = "Answers cannot contain empty values";
+
+            public const string AvailabilityTypeRequired = "Type is required";
+            public const string InvalidAvailabilityType = "Invalid availability type";
+            public const string InvalidAvailabilityTypeFormat = "Invalid availability type: {0}";
+
+            public const string FromDateBeforeUntil = "From date must be before or equal to Until date";
+            public const string DatesRequired = "Dates are required for SpecificDates availability type";
+            public const string DaysOfWeekRequired = "Days of week are required for Weekly availability type";
+        }
     }
 }

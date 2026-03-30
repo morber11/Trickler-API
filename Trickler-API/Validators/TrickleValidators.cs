@@ -1,6 +1,7 @@
 using FluentValidation;
 using Trickler_API.DTO;
 using Trickler_API.Models;
+using Trickler_API.Constants;
 
 namespace Trickler_API.Validators
 {
@@ -9,16 +10,16 @@ namespace Trickler_API.Validators
         public CreateTrickleRequestValidator(IValidator<AvailabilityDto> availabilityValidator)
         {
             RuleFor(x => x.Title)
-                .NotEmpty().WithMessage("Title is required")
-                .MaximumLength(1000).WithMessage("Title cannot exceed 1000 characters");
+                .NotEmpty().WithMessage(MessageConstants.Validation.TitleRequired)
+                .MaximumLength(1000).WithMessage(MessageConstants.Validation.TitleMaxLength);
 
             RuleFor(x => x.Text)
-                .NotEmpty().WithMessage("Text is required")
-                .MaximumLength(1000).WithMessage("Text cannot exceed 1000 characters");
+                .NotEmpty().WithMessage(MessageConstants.Validation.TextRequired)
+                .MaximumLength(1000).WithMessage(MessageConstants.Validation.TextMaxLength);
 
             RuleFor(x => x.Answers)
                 .Must(answers => answers is null || answers.All(a => a is not null && !string.IsNullOrWhiteSpace(a.Answer)))
-                .WithMessage("Answers cannot contain empty values");
+                .WithMessage(MessageConstants.Validation.AnswersCannotContainEmptyValues);
 
             RuleFor(x => x.Availability!)
                 .SetValidator(availabilityValidator)
@@ -31,16 +32,16 @@ namespace Trickler_API.Validators
         public UpdateTrickleRequestValidator(IValidator<AvailabilityDto> availabilityValidator)
         {
             RuleFor(x => x.Title)
-                .NotEmpty().WithMessage("Title is required")
-                .MaximumLength(1000).WithMessage("Title cannot exceed 1000 characters");
+                .NotEmpty().WithMessage(MessageConstants.Validation.TitleRequired)
+                .MaximumLength(1000).WithMessage(MessageConstants.Validation.TitleMaxLength);
 
             RuleFor(x => x.Text)
-                .NotEmpty().WithMessage("Text is required")
-                .MaximumLength(1000).WithMessage("Text cannot exceed 1000 characters");
+                .NotEmpty().WithMessage(MessageConstants.Validation.TextRequired)
+                .MaximumLength(1000).WithMessage(MessageConstants.Validation.TextMaxLength);
 
             RuleFor(x => x.Answers)
                 .Must(answers => answers is null || answers.All(a => a is not null && !string.IsNullOrWhiteSpace(a.Answer)))
-                .WithMessage("Answers cannot contain empty values");
+                .WithMessage(MessageConstants.Validation.AnswersCannotContainEmptyValues);
 
             RuleFor(x => x.Availability!)
                 .SetValidator(availabilityValidator)
@@ -53,24 +54,24 @@ namespace Trickler_API.Validators
         public AvailabilityDtoValidator()
         {
             RuleFor(x => x.Type)
-                .NotEmpty().WithMessage("Type is required")
+                .NotEmpty().WithMessage(MessageConstants.Validation.AvailabilityTypeRequired)
                 .Must(type => Enum.TryParse<AvailabilityType>(type, true, out _))
-                .WithMessage("Invalid availability type");
+                .WithMessage(MessageConstants.Validation.InvalidAvailabilityType);
 
             RuleFor(x => x.From)
                 .LessThanOrEqualTo(x => x.Until)
                 .When(x => x.From.HasValue && x.Until.HasValue)
-                .WithMessage("From date must be before or equal to Until date");
+                .WithMessage(MessageConstants.Validation.FromDateBeforeUntil);
 
             RuleFor(x => x.Dates)
                 .NotEmpty()
                 .When(x => Enum.TryParse<AvailabilityType>(x.Type, true, out var t) && t == AvailabilityType.SpecificDates)
-                .WithMessage("Dates are required for SpecificDates availability type");
+                .WithMessage(MessageConstants.Validation.DatesRequired);
 
             RuleFor(x => x.DaysOfWeek)
                 .NotEmpty()
                 .When(x => Enum.TryParse<AvailabilityType>(x.Type, true, out var t) && t == AvailabilityType.Weekly)
-                .WithMessage("Days of week are required for Weekly availability type");
+                .WithMessage(MessageConstants.Validation.DaysOfWeekRequired);
         }
     }
 }

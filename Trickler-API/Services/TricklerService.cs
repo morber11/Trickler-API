@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Trickler_API.Data;
 using Trickler_API.DTO;
 using Trickler_API.Exceptions;
+using Trickler_API.Constants;
 using Trickler_API.Models;
 
 namespace Trickler_API.Services
@@ -232,7 +233,9 @@ namespace Trickler_API.Services
         {
             return new Availability
             {
-                Type = Enum.Parse<AvailabilityType>(dto.Type, ignoreCase: true),
+                Type = Enum.TryParse<AvailabilityType>(dto.Type, true, out var parsedType)
+                    ? parsedType
+                    : throw new AppValidationException(string.Format(MessageConstants.Validation.InvalidAvailabilityTypeFormat, dto.Type)),
                 From = dto.From,
                 Until = dto.Until,
                 Dates = dto.Dates,
@@ -252,7 +255,9 @@ namespace Trickler_API.Services
         }
         private static void UpdateAvailabilityEntity(Availability entity, AvailabilityDto dto)
         {
-            entity.Type = Enum.Parse<AvailabilityType>(dto.Type, ignoreCase: true);
+            entity.Type = Enum.TryParse<AvailabilityType>(dto.Type, true, out var parsed)
+                ? parsed
+                : throw new AppValidationException(string.Format(MessageConstants.Validation.InvalidAvailabilityTypeFormat, dto.Type));
             entity.From = dto.From;
             entity.Until = dto.Until;
             entity.Dates = dto.Dates;
