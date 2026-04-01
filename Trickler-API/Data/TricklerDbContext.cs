@@ -69,7 +69,6 @@ namespace Trickler_API.Data
                 entity.Property(e => e.IsSolved).HasColumnName("is_solved");
                 entity.Property(e => e.SolvedAt).HasColumnName("solved_at");
                 entity.Property(e => e.RewardCode).HasColumnName("reward_code").HasMaxLength(100);
-                entity.Property(e => e.RowVersion).HasColumnName("row_version").IsConcurrencyToken().ValueGeneratedOnAddOrUpdate();
                 entity.HasIndex(u => u.UserId);
                 entity.HasIndex(u => u.TrickleId);
                 entity.HasIndex(u => new { u.UserId, u.TrickleId }).IsUnique();

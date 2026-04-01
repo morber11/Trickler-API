@@ -38,9 +38,5 @@ namespace Trickler_API.Models
         [MaxLength(100)]
         [Column("reward_code", TypeName = "character varying(100)")]
         public string? RewardCode { get; set; }
-
-        [Timestamp]
-        [Column("row_version")]
-        public byte[]? RowVersion { get; set; }
     }
 }

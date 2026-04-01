@@ -124,7 +124,6 @@ namespace Trickler_API.Services
                     var reloaded = await _context.UserTrickles.AsNoTracking().FirstOrDefaultAsync(u => u.UserId == userId && u.TrickleId == trickleId);
                     if (reloaded is not null)
                     {
-                        userTrickle.RowVersion = reloaded.RowVersion;
                         userTrickle.IsSolved = userTrickle.IsSolved || reloaded.IsSolved;
                         userTrickle.RewardCode ??= reloaded.RewardCode;
                     }
