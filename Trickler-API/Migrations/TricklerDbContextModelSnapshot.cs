@@ -45,33 +45,9 @@ namespace Trickler_API.Migrations
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex");
 
-                    b.ToTable("AspNetRoles", (string)null);
+                    b.ToTable("roles", (string)null);
                 });
-            modelBuilder.Entity("Trickler_API.Models.Answer", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("TricklerId")
-                        .HasColumnType("integer")
-                        .HasColumnName("trickler_id");
-
-                    b.Property<string>("AnswerText")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("answer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TricklerId")
-                        .HasDatabaseName("ix_answers_trickler_id");
-
-                    b.ToTable("answers", (string)null);
-                });
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.Property<int>("Id")
@@ -94,7 +70,7 @@ namespace Trickler_API.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetRoleClaims", (string)null);
+                    b.ToTable("role_claims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -119,7 +95,7 @@ namespace Trickler_API.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserClaims", (string)null);
+                    b.ToTable("user_claims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
@@ -141,7 +117,7 @@ namespace Trickler_API.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserLogins", (string)null);
+                    b.ToTable("user_logins", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
@@ -156,7 +132,7 @@ namespace Trickler_API.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetUserRoles", (string)null);
+                    b.ToTable("user_roles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -175,7 +151,32 @@ namespace Trickler_API.Migrations
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("AspNetUserTokens", (string)null);
+                    b.ToTable("user_tokens", (string)null);
+                });
+
+            modelBuilder.Entity("Trickler_API.Models.Answer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AnswerText")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("answer");
+
+                    b.Property<int>("TricklerId")
+                        .HasColumnType("integer")
+                        .HasColumnName("trickler_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TricklerId");
+
+                    b.ToTable("answers", (string)null);
                 });
 
             modelBuilder.Entity("Trickler_API.Models.ApplicationUser", b =>
@@ -239,7 +240,7 @@ namespace Trickler_API.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
-                    b.ToTable("AspNetUsers", (string)null);
+                    b.ToTable("users", (string)null);
                 });
 
             modelBuilder.Entity("Trickler_API.Models.Availability", b =>
@@ -249,15 +250,15 @@ namespace Trickler_API.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("id");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("DaysOfWeekJson")
-                        .HasColumnType("jsonb")
-                        .HasColumnName("days_of_week");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("Id"));
 
                     b.Property<string>("DatesJson")
                         .HasColumnType("jsonb")
                         .HasColumnName("dates");
+
+                    b.Property<string>("DaysOfWeekJson")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("days_of_week");
 
                     b.Property<DateOnly?>("From")
                         .HasColumnType("date")
@@ -286,8 +287,12 @@ namespace Trickler_API.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int?>("AvailabilityId")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("availability_id");
+
+                    b.Property<int>("QuestionType")
+                        .HasColumnType("integer")
+                        .HasColumnName("question_type");
 
                     b.Property<string>("Text")
                         .IsRequired()
@@ -298,11 +303,8 @@ namespace Trickler_API.Migrations
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(1000)
-                        .HasColumnType("varchar(1000)");
-
-                    b.Property<int>("QuestionType")
-                        .HasColumnType("integer")
-                        .HasColumnName("question_type");
+                        .HasColumnType("varchar(1000)")
+                        .HasColumnName("title");
 
                     b.HasKey("Id");
 
@@ -320,65 +322,55 @@ namespace Trickler_API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("user_id");
-
-                    b.Property<int>("TrickleId")
+                    b.Property<int>("AttemptCountTotal")
                         .HasColumnType("integer")
-                        .HasColumnName("trickler_id");
-
-                    b.Property<int>("AttemptsToday")
-                        .HasColumnType("integer")
-                        .HasColumnName("attempts_today");
+                        .HasColumnName("attempt_count_total");
 
                     b.Property<DateTime>("AttemptsDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("attempts_date");
 
-                    b.Property<int>("AttemptCountTotal")
+                    b.Property<int>("AttemptsToday")
                         .HasColumnType("integer")
-                        .HasColumnName("attempt_count_total");
-
-                    b.Property<DateTime?>("LastAttemptAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_attempt_at");
+                        .HasColumnName("attempts_today");
 
                     b.Property<bool>("IsSolved")
                         .HasColumnType("boolean")
                         .HasColumnName("is_solved");
 
-                    b.Property<DateTime?>("SolvedAt")
+                    b.Property<DateTime?>("LastAttemptAt")
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("solved_at");
+                        .HasColumnName("last_attempt_at");
 
                     b.Property<string>("RewardCode")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("reward_code");
 
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea")
-                        .HasColumnName("row_version");
+                    b.Property<DateTime?>("SolvedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("solved_at");
+
+                    b.Property<int>("TrickleId")
+                        .HasColumnType("integer")
+                        .HasColumnName("trickler_id");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("user_id");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_user_trickles_user_id");
+                    b.HasIndex("RewardCode")
+                        .IsUnique();
 
-                    b.HasIndex("TrickleId")
-                        .HasDatabaseName("ix_user_trickles_trickler_id");
+                    b.HasIndex("TrickleId");
+
+                    b.HasIndex("UserId");
 
                     b.HasIndex("UserId", "TrickleId")
-                        .IsUnique()
-                        .HasDatabaseName("ux_user_trickles_user_id_trickler_id");
-
-                    b.HasIndex("RewardCode")
-                        .IsUnique()
-                        .HasDatabaseName("ix_user_trickles_reward_code");
+                        .IsUnique();
 
                     b.ToTable("user_trickles", (string)null);
                 });
@@ -440,7 +432,8 @@ namespace Trickler_API.Migrations
                         .WithMany("Answers")
                         .HasForeignKey("TricklerId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_answers_trickles_trickler_id");
                 });
 
             modelBuilder.Entity("Trickler_API.Models.Trickle", b =>
@@ -448,10 +441,26 @@ namespace Trickler_API.Migrations
                     b.HasOne("Trickler_API.Models.Availability", "Availability")
                         .WithMany()
                         .HasForeignKey("AvailabilityId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_trickles_availabilities_availability_id");
 
                     b.Navigation("Availability");
+                });
 
+            modelBuilder.Entity("Trickler_API.Models.UserTrickle", b =>
+                {
+                    b.HasOne("Trickler_API.Models.Trickle", "Trickle")
+                        .WithMany()
+                        .HasForeignKey("TrickleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_user_trickles_trickles_trickler_id");
+
+                    b.Navigation("Trickle");
+                });
+
+            modelBuilder.Entity("Trickler_API.Models.Trickle", b =>
+                {
                     b.Navigation("Answers");
                 });
 #pragma warning restore 612, 618

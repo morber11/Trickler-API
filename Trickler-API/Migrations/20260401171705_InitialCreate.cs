@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
@@ -6,11 +7,28 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Trickler_API.Migrations
 {
     /// <inheritdoc />
-    public partial class AddIdentity : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "availabilities",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn),
+                    type = table.Column<int>(type: "integer", nullable: false),
+                    from_date = table.Column<DateOnly>(type: "date", nullable: true),
+                    until_date = table.Column<DateOnly>(type: "date", nullable: true),
+                    dates = table.Column<string>(type: "jsonb", nullable: true),
+                    days_of_week = table.Column<string>(type: "jsonb", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_availabilities", x => x.id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "roles",
                 columns: table => new
@@ -22,7 +40,7 @@ namespace Trickler_API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_roles", x => x.Id);
+                    table.PrimaryKey("PK_roles", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -47,7 +65,29 @@ namespace Trickler_API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_users", x => x.Id);
+                    table.PrimaryKey("PK_users", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "trickles",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    title = table.Column<string>(type: "varchar(1000)", maxLength: 1000, nullable: false),
+                    text = table.Column<string>(type: "varchar(1000)", maxLength: 1000, nullable: false),
+                    question_type = table.Column<int>(type: "integer", nullable: false),
+                    availability_id = table.Column<int>(type: "integer", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_trickles", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_trickles_availabilities_availability_id",
+                        column: x => x.availability_id,
+                        principalTable: "availabilities",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -62,9 +102,9 @@ namespace Trickler_API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_role_claims", x => x.Id);
+                    table.PrimaryKey("PK_role_claims", x => x.Id);
                     table.ForeignKey(
-                        name: "fk_role_claims_roles_role_id",
+                        name: "FK_role_claims_roles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "roles",
                         principalColumn: "Id",
@@ -83,9 +123,9 @@ namespace Trickler_API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_user_claims", x => x.Id);
+                    table.PrimaryKey("PK_user_claims", x => x.Id);
                     table.ForeignKey(
-                        name: "fk_user_claims_users_user_id",
+                        name: "FK_user_claims_users_UserId",
                         column: x => x.UserId,
                         principalTable: "users",
                         principalColumn: "Id",
@@ -103,9 +143,9 @@ namespace Trickler_API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_user_logins", x => new { x.LoginProvider, x.ProviderKey });
+                    table.PrimaryKey("PK_user_logins", x => new { x.LoginProvider, x.ProviderKey });
                     table.ForeignKey(
-                        name: "fk_user_logins_users_user_id",
+                        name: "FK_user_logins_users_UserId",
                         column: x => x.UserId,
                         principalTable: "users",
                         principalColumn: "Id",
@@ -121,15 +161,15 @@ namespace Trickler_API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_user_roles", x => new { x.UserId, x.RoleId });
+                    table.PrimaryKey("PK_user_roles", x => new { x.UserId, x.RoleId });
                     table.ForeignKey(
-                        name: "fk_user_roles_roles_role_id",
+                        name: "FK_user_roles_roles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "roles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "fk_user_roles_users_user_id",
+                        name: "FK_user_roles_users_UserId",
                         column: x => x.UserId,
                         principalTable: "users",
                         principalColumn: "Id",
@@ -147,48 +187,127 @@ namespace Trickler_API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_user_tokens", x => new { x.UserId, x.LoginProvider, x.Name });
+                    table.PrimaryKey("PK_user_tokens", x => new { x.UserId, x.LoginProvider, x.Name });
                     table.ForeignKey(
-                        name: "fk_user_tokens_users_user_id",
+                        name: "FK_user_tokens_users_UserId",
                         column: x => x.UserId,
                         principalTable: "users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "answers",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    trickler_id = table.Column<int>(type: "integer", nullable: false),
+                    answer = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_answers", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_answers_trickles_trickler_id",
+                        column: x => x.trickler_id,
+                        principalTable: "trickles",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "user_trickles",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    user_id = table.Column<string>(type: "text", nullable: false),
+                    trickler_id = table.Column<int>(type: "integer", nullable: false),
+                    attempts_today = table.Column<int>(type: "integer", nullable: false),
+                    attempts_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    attempt_count_total = table.Column<int>(type: "integer", nullable: false),
+                    last_attempt_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    is_solved = table.Column<bool>(type: "boolean", nullable: false),
+                    solved_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    reward_code = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_user_trickles", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_user_trickles_trickles_trickler_id",
+                        column: x => x.trickler_id,
+                        principalTable: "trickles",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
-                name: "ix_role_claims_role_id",
+                name: "IX_answers_trickler_id",
+                table: "answers",
+                column: "trickler_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_role_claims_RoleId",
                 table: "role_claims",
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
-                name: "ix_roles_normalized_name",
+                name: "RoleNameIndex",
                 table: "roles",
                 column: "NormalizedName",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "ix_user_claims_user_id",
+                name: "IX_trickles_availability_id",
+                table: "trickles",
+                column: "availability_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_user_claims_UserId",
                 table: "user_claims",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "ix_user_logins_user_id",
+                name: "IX_user_logins_UserId",
                 table: "user_logins",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "ix_user_roles_role_id",
+                name: "IX_user_roles_RoleId",
                 table: "user_roles",
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
-                name: "ix_users_normalized_email",
+                name: "IX_user_trickles_reward_code",
+                table: "user_trickles",
+                column: "reward_code",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_user_trickles_trickler_id",
+                table: "user_trickles",
+                column: "trickler_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_user_trickles_user_id",
+                table: "user_trickles",
+                column: "user_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_user_trickles_user_id_trickler_id",
+                table: "user_trickles",
+                columns: new[] { "user_id", "trickler_id" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "EmailIndex",
                 table: "users",
                 column: "NormalizedEmail");
 
             migrationBuilder.CreateIndex(
-                name: "ix_users_normalized_user_name",
+                name: "UserNameIndex",
                 table: "users",
                 column: "NormalizedUserName",
                 unique: true);
@@ -197,6 +316,9 @@ namespace Trickler_API.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "answers");
+
             migrationBuilder.DropTable(
                 name: "role_claims");
 
@@ -213,10 +335,19 @@ namespace Trickler_API.Migrations
                 name: "user_tokens");
 
             migrationBuilder.DropTable(
+                name: "user_trickles");
+
+            migrationBuilder.DropTable(
                 name: "roles");
 
             migrationBuilder.DropTable(
                 name: "users");
+
+            migrationBuilder.DropTable(
+                name: "trickles");
+
+            migrationBuilder.DropTable(
+                name: "availabilities");
         }
     }
 }
