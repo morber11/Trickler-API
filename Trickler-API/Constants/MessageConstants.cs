@@ -57,6 +57,8 @@ namespace Trickler_API.Constants
             public const string FromDateBeforeUntil = "From date must be before or equal to Until date";
             public const string DatesRequired = "Dates are required for SpecificDates availability type";
             public const string DaysOfWeekRequired = "Days of week are required for Weekly availability type";
+            public const string ScoreRequired = "Score is required";
+            public const string RewardTextRequired = "Reward text is required";
         }
     }
 }

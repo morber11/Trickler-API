@@ -14,13 +14,15 @@ namespace Trickler_API.Migrations
                 name: "score",
                 table: "trickles",
                 type: "integer",
-                nullable: false);
+                nullable: false,
+                defaultValue: 0);
 
             migrationBuilder.AddColumn<string>(
                 name: "reward_text",
                 table: "trickles",
                 type: "text",
-                nullable: false);
+                nullable: false,
+                defaultValue: "");
         }
 
         /// <inheritdoc />
