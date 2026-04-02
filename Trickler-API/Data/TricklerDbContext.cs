@@ -23,6 +23,8 @@ namespace Trickler_API.Data
                 entity.Property(e => e.Title).HasColumnName("title");
                 entity.Property(e => e.Text).HasColumnName("text");
                 entity.Property(e => e.QuestionType).HasColumnName("question_type");
+                entity.Property(e => e.Score).HasColumnName("score");
+                entity.Property(e => e.RewardText).HasColumnName("reward_text");
                 entity.HasMany(t => t.Answers)
                       .WithOne()
                       .HasForeignKey(a => a.TricklerId)

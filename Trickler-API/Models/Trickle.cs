@@ -22,6 +22,12 @@ namespace Trickler_API.Models
         public QuestionType QuestionType { get; set; } = QuestionType.Single;
         public List<Answer> Answers { get; set; } = [];
 
+        [Column("score", TypeName = "integer")]
+        public int Score { get; set; } = 0;
+
+        [Column("reward_text", TypeName = "text")]
+        public string RewardText { get; set; } = string.Empty;
+
         [Column("availability_id")]
         public int? AvailabilityId { get; set; }
         public Availability? Availability { get; set; }

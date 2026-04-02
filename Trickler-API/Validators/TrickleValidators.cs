@@ -24,6 +24,13 @@ namespace Trickler_API.Validators
             RuleFor(x => x.Availability!)
                 .SetValidator(availabilityValidator)
                 .When(x => x.Availability is not null);
+
+            RuleFor(x => x.Score)
+                .GreaterThanOrEqualTo(0);
+
+            RuleFor(x => x.RewardText)
+                .MaximumLength(1000)
+                .When(x => x.RewardText is not null);
         }
     }
 
@@ -46,6 +53,13 @@ namespace Trickler_API.Validators
             RuleFor(x => x.Availability!)
                 .SetValidator(availabilityValidator)
                 .When(x => x.Availability is not null);
+
+            RuleFor(x => x.Score)
+                .GreaterThanOrEqualTo(0);
+
+            RuleFor(x => x.RewardText)
+                .MaximumLength(1000)
+                .When(x => x.RewardText is not null);
         }
     }
 

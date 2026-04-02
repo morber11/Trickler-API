@@ -36,15 +36,22 @@ namespace Trickler_API.Services
                 t.Id,
                 t.Title,
                 t.Text,
+                t.Score,
                 t.Availability is not null ? MapAvailabilityToDto(t.Availability) : null
             ))];
         }
 
-        public async Task<TrickleWithAnswersDto> CreateTrickleAsync(string title, string text, IEnumerable<AnswerDto>? answers, AvailabilityDto? availability)
+        public async Task<TrickleWithAnswersDto> CreateTrickleAsync(
+            string title, 
+            string text, 
+            IEnumerable<AnswerDto>? answers, 
+            AvailabilityDto? availability, 
+            int score = 0, 
+            string? rewardText = null)
         {
             _logger.LogInformation("Creating new trickle with answers");
 
-            var trickle = new Trickle { Title = title, Text = text };
+            var trickle = new Trickle { Title = title, Text = text, Score = score, RewardText = rewardText ?? string.Empty };
 
             if (availability is not null)
             {
@@ -72,6 +79,8 @@ namespace Trickler_API.Services
                 trickle.Title,
                 trickle.Text,
                 trickle.Answers?.Select(a => new AnswerDto(a.Id, a.AnswerText)) ?? [],
+                trickle.Score,
+                trickle.RewardText,
                 trickle.Availability is not null ? MapAvailabilityToDto(trickle.Availability) : null
             );
 
@@ -97,6 +106,8 @@ namespace Trickler_API.Services
                 trickle.Title,
                 trickle.Text,
                 trickle.Answers.Select(a => new AnswerDto(a.Id, a.AnswerText)),
+                trickle.Score,
+                trickle.RewardText,
                 trickle.Availability is not null ? MapAvailabilityToDto(trickle.Availability) : null
             );
         }
@@ -115,11 +126,20 @@ namespace Trickler_API.Services
                 t.Title,
                 t.Text,
                 t.Answers.Select(a => new AnswerDto(a.Id, a.AnswerText)),
+                t.Score,
+                t.RewardText,
                 t.Availability is not null ? MapAvailabilityToDto(t.Availability) : null
             ))];
         }
 
-        public async Task<TrickleWithAnswersDto> UpdateTrickleAsync(int id, string title, string text, IEnumerable<AnswerDto>? answers, AvailabilityDto? availability)
+        public async Task<TrickleWithAnswersDto> UpdateTrickleAsync(
+            int id, 
+            string title, 
+            string text, 
+            IEnumerable<AnswerDto>? answers, 
+            AvailabilityDto? availability, 
+            int score = 0, 
+            string? rewardText = null)
         {
             _logger.LogInformation("Updating trickle with ID: {Id}", id);
 
@@ -136,6 +156,8 @@ namespace Trickler_API.Services
 
             trickle.Title = title;
             trickle.Text = text;
+            trickle.Score = score;
+            trickle.RewardText = rewardText ?? string.Empty;
 
             if (availability is not null)
             {
@@ -176,6 +198,8 @@ namespace Trickler_API.Services
                 trickle.Title,
                 trickle.Text,
                 trickle.Answers?.Select(a => new AnswerDto(a.Id, a.AnswerText)) ?? [],
+                trickle.Score,
+                trickle.RewardText,
                 trickle.Availability is not null ? MapAvailabilityToDto(trickle.Availability) : null
             );
         }

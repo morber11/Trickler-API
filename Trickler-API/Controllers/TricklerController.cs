@@ -70,7 +70,13 @@ namespace Trickler_API.Controllers
         /// <returns>201 with created trickle and answers.</returns>
         public async Task<IActionResult> Create([FromBody] CreateTrickleRequest request)
         {
-            var dto = await _tricklerService.CreateTrickleAsync(request.Title, request.Text, request.Answers, request.Availability);
+            var dto = await _tricklerService.CreateTrickleAsync(
+                request.Title, 
+                request.Text, 
+                request.Answers, 
+                request.Availability, 
+                request.Score, 
+                request.RewardText);
             return CreatedAtAction(nameof(GetById), new { id = dto.Id }, dto);
         }
 
@@ -84,7 +90,14 @@ namespace Trickler_API.Controllers
         /// <returns>200 with updated trickle, 404 if not found.</returns>
         public async Task<IActionResult> Update(int id, [FromBody] UpdateTrickleRequest request)
         {
-            var dto = await _tricklerService.UpdateTrickleAsync(id, request.Title, request.Text, request.Answers, request.Availability);
+            var dto = await _tricklerService.UpdateTrickleAsync(
+                id,
+                request.Title,
+                request.Text,
+                request.Answers,
+                request.Availability,
+                request.Score,
+                request.RewardText);
             return Ok(dto);
         }
 
