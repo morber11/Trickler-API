@@ -29,6 +29,10 @@ namespace Trickler_API.Validators
                 .NotNull().WithMessage(MessageConstants.Validation.ScoreRequired)
                 .GreaterThanOrEqualTo(0);
 
+            RuleFor(x => x.AttemptsPerTrickle)
+                .Must(v => v >= -1)
+                .WithMessage("AttemptsPerTrickle must be -1 (unlimited) or >= 1");
+
             RuleFor(x => x.RewardText)
                 .NotNull().WithMessage(MessageConstants.Validation.RewardTextRequired)
                 .NotEmpty().WithMessage(MessageConstants.Validation.RewardTextRequired)
@@ -59,6 +63,10 @@ namespace Trickler_API.Validators
             RuleFor(x => x.Score)
                 .NotNull().WithMessage(MessageConstants.Validation.ScoreRequired)
                 .GreaterThanOrEqualTo(0);
+
+            RuleFor(x => x.AttemptsPerTrickle)
+                .Must(v => v >= -1)
+                .WithMessage("AttemptsPerTrickle must be -1 (unlimited) or >= 1");
 
             RuleFor(x => x.RewardText)
                 .NotNull().WithMessage(MessageConstants.Validation.RewardTextRequired)

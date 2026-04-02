@@ -37,14 +37,28 @@ namespace Trickler_API.Services
                 return new SubmitAnswerResult(false, null, null, 0);
             }
 
-            //TODO: move to a per trickle if we want to support different amounts / infinite guesses
-            var attemptLimit = Constants.DefaultValueConstants.DefaultSubmitAnswerAttempts;
-            if (_configuration is not null)
+            var isUnlimited = false;
+            int attemptLimit = Constants.DefaultValueConstants.DefaultSubmitAnswerAttempts;
+
+            var attemptsPerTrickle = trickle.AttemptsPerTrickle;
+            if (attemptsPerTrickle == -1)
             {
-                var configured = _configuration["AttemptLimitPerDay"];
-                if (!string.IsNullOrWhiteSpace(configured) && int.TryParse(configured, out var parsed))
+                isUnlimited = true;
+            }
+            else if (attemptsPerTrickle > 0)
+            {
+                attemptLimit = attemptsPerTrickle;
+            }
+            else
+            {
+                // fallback
+                if (_configuration is not null)
                 {
-                    attemptLimit = parsed;
+                    var configured = _configuration["AttemptLimitPerDay"];
+                    if (!string.IsNullOrWhiteSpace(configured) && int.TryParse(configured, out var parsed))
+                    {
+                        attemptLimit = parsed;
+                    }
                 }
             }
 
@@ -73,7 +87,7 @@ namespace Trickler_API.Services
             // If the user already solved this trickle, short-circuit and return the solved state
             if (userTrickle.IsSolved)
             {
-                var attemptsLeftCurrent = Math.Max(0, attemptLimit - userTrickle.AttemptsToday);
+                var attemptsLeftCurrent = isUnlimited ? int.MaxValue : Math.Max(0, attemptLimit - userTrickle.AttemptsToday);
                 return new SubmitAnswerResult(
                     userTrickle.IsSolved,
                     userTrickle.SolvedAt,
@@ -81,7 +95,7 @@ namespace Trickler_API.Services
                     attemptsLeftCurrent);
             }
 
-            if (userTrickle.AttemptsToday >= attemptLimit)
+            if (!isUnlimited && userTrickle.AttemptsToday >= attemptLimit)
             {
                 // don't need to force this to be null because
                 // the reward is generated later
@@ -137,7 +151,7 @@ namespace Trickler_API.Services
                 }
             }
 
-            var attemptsLeft = Math.Max(0, attemptLimit - userTrickle.AttemptsToday);
+            var attemptsLeft = isUnlimited ? int.MaxValue : Math.Max(0, attemptLimit - userTrickle.AttemptsToday);
             return new SubmitAnswerResult(
                 userTrickle.IsSolved,
                 userTrickle.SolvedAt,

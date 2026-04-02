@@ -36,6 +36,10 @@ namespace Trickler_API.Data
                       .HasConstraintName("fk_trickles_availabilities_availability_id")
                       .OnDelete(DeleteBehavior.SetNull);
                 entity.HasIndex(t => t.AvailabilityId);
+                        entity.Property(e => e.AttemptsPerTrickle)
+                            .HasColumnName("attempts_per_trickle")
+                            .HasDefaultValue(-1)
+                            .IsRequired();
             });
 
             modelBuilder.Entity<Availability>(entity =>

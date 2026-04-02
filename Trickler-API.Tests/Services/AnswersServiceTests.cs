@@ -83,7 +83,7 @@ namespace Trickler_API.Tests.Services
         [Fact]
         public async Task SubmitAnswer_AttemptLimitEnforced()
         {
-            var trickle = new Trickle { Text = "Question" };
+            var trickle = new Trickle { Text = "Question", AttemptsPerTrickle = 5 };
             _context.Trickles.Add(trickle);
             await _context.SaveChangesAsync();
 

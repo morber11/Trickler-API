@@ -37,7 +37,8 @@ namespace Trickler_API.Services
                 t.Title,
                 t.Text,
                 t.Score,
-                t.Availability is not null ? MapAvailabilityToDto(t.Availability) : null
+                t.Availability is not null ? MapAvailabilityToDto(t.Availability) : null,
+                t.AttemptsPerTrickle
             ))];
         }
 
@@ -47,11 +48,12 @@ namespace Trickler_API.Services
             IEnumerable<AnswerDto>? answers, 
             AvailabilityDto? availability, 
             int score = 0, 
-            string? rewardText = null)
+            string? rewardText = null,
+            int attemptsPerTrickle = -1)
         {
             _logger.LogInformation("Creating new trickle with answers");
 
-            var trickle = new Trickle { Title = title, Text = text, Score = score, RewardText = rewardText ?? string.Empty };
+            var trickle = new Trickle { Title = title, Text = text, Score = score, RewardText = rewardText ?? string.Empty, AttemptsPerTrickle = attemptsPerTrickle };
 
             if (availability is not null)
             {
@@ -81,7 +83,8 @@ namespace Trickler_API.Services
                 trickle.Answers?.Select(a => new AnswerDto(a.Id, a.AnswerText)) ?? [],
                 trickle.Score,
                 trickle.RewardText,
-                trickle.Availability is not null ? MapAvailabilityToDto(trickle.Availability) : null
+                trickle.Availability is not null ? MapAvailabilityToDto(trickle.Availability) : null,
+                trickle.AttemptsPerTrickle
             );
 
             return dto;
@@ -108,7 +111,8 @@ namespace Trickler_API.Services
                 trickle.Answers.Select(a => new AnswerDto(a.Id, a.AnswerText)),
                 trickle.Score,
                 trickle.RewardText,
-                trickle.Availability is not null ? MapAvailabilityToDto(trickle.Availability) : null
+                trickle.Availability is not null ? MapAvailabilityToDto(trickle.Availability) : null,
+                trickle.AttemptsPerTrickle
             );
         }
 
@@ -128,7 +132,8 @@ namespace Trickler_API.Services
                 t.Answers.Select(a => new AnswerDto(a.Id, a.AnswerText)),
                 t.Score,
                 t.RewardText,
-                t.Availability is not null ? MapAvailabilityToDto(t.Availability) : null
+                t.Availability is not null ? MapAvailabilityToDto(t.Availability) : null,
+                t.AttemptsPerTrickle
             ))];
         }
 
@@ -139,7 +144,8 @@ namespace Trickler_API.Services
             IEnumerable<AnswerDto>? answers, 
             AvailabilityDto? availability, 
             int score = 0, 
-            string? rewardText = null)
+            string? rewardText = null,
+            int attemptsPerTrickle = -1)
         {
             _logger.LogInformation("Updating trickle with ID: {Id}", id);
 
@@ -158,6 +164,7 @@ namespace Trickler_API.Services
             trickle.Text = text;
             trickle.Score = score;
             trickle.RewardText = rewardText ?? string.Empty;
+            trickle.AttemptsPerTrickle = attemptsPerTrickle;
 
             if (availability is not null)
             {
@@ -200,7 +207,8 @@ namespace Trickler_API.Services
                 trickle.Answers?.Select(a => new AnswerDto(a.Id, a.AnswerText)) ?? [],
                 trickle.Score,
                 trickle.RewardText,
-                trickle.Availability is not null ? MapAvailabilityToDto(trickle.Availability) : null
+                trickle.Availability is not null ? MapAvailabilityToDto(trickle.Availability) : null,
+                trickle.AttemptsPerTrickle
             );
         }
 

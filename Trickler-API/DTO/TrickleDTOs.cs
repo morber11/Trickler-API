@@ -17,7 +17,8 @@ namespace Trickler_API.DTO
         IEnumerable<AnswerDto> Answers,
         int Score,
         string RewardText,
-        AvailabilityDto? Availability
+        AvailabilityDto? Availability,
+        int AttemptsPerTrickle
     );
 
     public record AvailableTrickleDto(
@@ -25,7 +26,8 @@ namespace Trickler_API.DTO
         string Title,
         string Text,
         int Score,
-        AvailabilityDto? Availability
+        AvailabilityDto? Availability,
+        int AttemptsPerTrickle
     );
 
     public record CreateTrickleRequest(
@@ -34,7 +36,8 @@ namespace Trickler_API.DTO
         IEnumerable<AnswerDto>? Answers,
         AvailabilityDto? Availability,
         int Score = 0,
-        string? RewardText = null
+        string? RewardText = null,
+        int AttemptsPerTrickle = -1
     );
 
     public record UpdateTrickleRequest(
@@ -44,6 +47,7 @@ namespace Trickler_API.DTO
         IEnumerable<AnswerDto>? Answers,
         AvailabilityDto? Availability,
         int Score = 0,
-        string? RewardText = null
+        string? RewardText = null,
+        int AttemptsPerTrickle = -1
     );
 }

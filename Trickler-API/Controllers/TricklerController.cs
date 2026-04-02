@@ -76,7 +76,8 @@ namespace Trickler_API.Controllers
                 request.Answers, 
                 request.Availability, 
                 request.Score, 
-                request.RewardText);
+                request.RewardText,
+                request.AttemptsPerTrickle);
             return CreatedAtAction(nameof(GetById), new { id = dto.Id }, dto);
         }
 
@@ -97,7 +98,8 @@ namespace Trickler_API.Controllers
                 request.Answers,
                 request.Availability,
                 request.Score,
-                request.RewardText);
+                request.RewardText,
+                request.AttemptsPerTrickle);
             return Ok(dto);
         }
 

@@ -31,5 +31,8 @@ namespace Trickler_API.Models
         [Column("availability_id")]
         public int? AvailabilityId { get; set; }
         public Availability? Availability { get; set; }
+        
+        [Column("attempts_per_trickle", TypeName = "integer")]
+        public int AttemptsPerTrickle { get; set; } = -1;
     }
 }
