@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Trickler_API.Constants;
 using Trickler_API.Models;
 
-namespace Trickler_API.Data
+namespace Trickler_API.Data.Seeders
 {
     public static class UserRolesSeeder
     {

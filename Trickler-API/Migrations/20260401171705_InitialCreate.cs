@@ -298,7 +298,7 @@ namespace Trickler_API.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_user_trickles_user_id_trickler_id",
                 table: "user_trickles",
-                columns: new[] { "user_id", "trickler_id" },
+                columns: ["user_id", "trickler_id"],
                 unique: true);
 
             migrationBuilder.CreateIndex(

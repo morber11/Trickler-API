@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using System.Threading.RateLimiting;
 using Trickler_API.Data;
+using Trickler_API.Data.Seeders;
 using Trickler_API.Middleware;
 using Trickler_API.Models;
 using Trickler_API.Services;

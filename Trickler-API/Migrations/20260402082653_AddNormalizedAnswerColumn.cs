@@ -32,7 +32,7 @@ namespace Trickler_API.Migrations
             migrationBuilder.CreateIndex(
                 name: "ix_answers_trickler_id_normalized_answer",
                 table: "answers",
-                columns: new[] { "trickler_id", "normalized_answer" });
+                columns: ["trickler_id", "normalized_answer"]);
         }
 
         /// <inheritdoc />
