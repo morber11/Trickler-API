@@ -28,7 +28,7 @@ namespace Trickler_API.Tests.Services
         }
 
         [Fact]
-        public async Task VerifyAnswerAsync_MatchingAnswer_ReturnsTrue()
+        public async Task SubmitAnswer_VerifyInline_MatchingAnswer_ReturnsSolved()
         {
             var trickle = new Trickle { Text = "Question" };
             _context.Trickles.Add(trickle);
@@ -38,9 +38,10 @@ namespace Trickler_API.Tests.Services
             _context.Answers.Add(answer);
             await _context.SaveChangesAsync();
 
-            var result = await _service.VerifyAnswerAsync(trickle.Id, "Yes");
+            var userId = "verify-user";
+            var result = await _service.SubmitAnswerAsync(trickle.Id, "Yes", userId);
 
-            Assert.True(result);
+            Assert.True(result.IsSolved);
         }
 
         [Fact]
@@ -56,7 +57,7 @@ namespace Trickler_API.Tests.Services
             var userId = "user-1";
             var result = await _service.SubmitAnswerAsync(trickle.Id, "yes", userId);
 
-            Assert.True(result.Correct);
+            Assert.True(result.IsSolved);
             Assert.False(string.IsNullOrWhiteSpace(result.RewardCode));
 
             var ut = await _context.UserTrickles.SingleAsync(u => u.UserId == userId && u.TrickleId == trickle.Id);
@@ -91,7 +92,7 @@ namespace Trickler_API.Tests.Services
             for (int i = 0; i < 5; i++)
             {
                 var r = await _service.SubmitAnswerAsync(trickle.Id, "wrong", userId);
-                Assert.False(r.Correct);
+                Assert.False(r.IsSolved);
             }
 
             var sixth = await _service.SubmitAnswerAsync(trickle.Id, "wrong", userId);

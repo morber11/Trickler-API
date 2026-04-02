@@ -16,18 +16,6 @@ namespace Trickler_API.Controllers
     {
         private readonly AnswersService _answersService = answersService;
 
-        /// <summary>
-        /// Verify an answer for a trickle.
-        /// </summary>
-        /// <param name="request">Contains trickle id and answer text.</param>
-        /// <returns>200 with { correct = true/false }.</returns>
-        [HttpPost("verify")]
-        [Authorize(Roles = RoleConstants.AdminOrUser)]
-        public async Task<IActionResult> VerifyAnswer([FromBody] VerifyAnswerRequest request)
-        {
-            var trickleExists = await _answersService.VerifyAnswerAsync(request.TrickleId, request.Answer);
-            return Ok(new VerifyAnswerResponse(trickleExists));
-        }
 
         /// <summary>
         /// Submit an answer (persists attempts, issues reward on first correct solve).
@@ -44,12 +32,16 @@ namespace Trickler_API.Controllers
 
             var result = await _answersService.SubmitAnswerAsync(request.TrickleId, request.Answer, userId);
 
-            if (result.AttemptsLeft <= 0 && !result.Correct)
+            if (result.AttemptsLeft <= 0 && !result.IsSolved)
             {
                 return StatusCode(StatusCodes.Status429TooManyRequests, new MessageResponse(MessageConstants.Answers.AttemptLimitReached));
             }
 
-            return Ok(new SubmitAnswerResponse(result.Correct, result.RewardCode, result.AttemptsLeft));
+            return Ok(new SubmitAnswerResponse(
+                result.IsSolved, 
+                result.SolvedAt, 
+                result.RewardCode, 
+                result.AttemptsLeft));
         }
     }
 }

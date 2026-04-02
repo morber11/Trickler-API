@@ -1,7 +1,5 @@
 ﻿namespace Trickler_API.DTO
 {
-    public record VerifyAnswerRequest(int TrickleId, string Answer);
     public record SubmitAnswerRequest(int TrickleId, string Answer);
-    public record SubmitAnswerResponse(bool Correct, string? Reward, int AttemptsLeft);
-    public record VerifyAnswerResponse(bool Correct);
+    public record SubmitAnswerResponse(bool IsSolved, DateTime? SolvedAt, string? RewardCode, int AttemptsLeft);
 }

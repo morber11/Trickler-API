@@ -15,27 +15,11 @@ namespace Trickler_API.Services
         private readonly IConfiguration? _configuration = configuration;
         private readonly TimeProvider _timeProvider = timeProvider;
 
-        public record SubmitAnswerResult(bool Correct, string? RewardCode, int AttemptsLeft);
-
-        public async Task<bool> VerifyAnswerAsync(int trickleId, string answer)
-        {
-            if (string.IsNullOrWhiteSpace(answer)) return false;
-
-            var trickleExists = await _context.Trickles.AnyAsync(t => t.Id == trickleId);
-            if (!trickleExists) return false;
-
-            var normalizedAnswer = answer.Trim().ToLowerInvariant();
-
-            var match = await _context.Answers
-                .Where(a => a.TricklerId == trickleId)
-                .AnyAsync(a => a.NormalizedAnswer == normalizedAnswer);
-
-            return match;
-        }
+        public record SubmitAnswerResult(bool IsSolved, DateTime? SolvedAt, string? RewardCode, int AttemptsLeft);
 
         public async Task<SubmitAnswerResult> SubmitAnswerAsync(int trickleId, string answer, string userId)
         {
-            if (string.IsNullOrWhiteSpace(answer)) return new SubmitAnswerResult(false, null, 0);
+            if (string.IsNullOrWhiteSpace(answer)) return new SubmitAnswerResult(false, null, null, 0);
 
             var trickle = await _context.Trickles.Include(t => t.Availability)
                 .FirstOrDefaultAsync(t => t.Id == trickleId)
@@ -48,7 +32,7 @@ namespace Trickler_API.Services
 
             if (!_availabilityService.IsAvailable(trickle.Availability, currentDateOnly, currentDayOfWeek))
             {
-                return new SubmitAnswerResult(false, null, 0);
+                return new SubmitAnswerResult(false, null, null, 0);
             }
 
             var attemptLimit = Constants.DefaultValueConstants.DefaultSubmitAnswerAttempts;
@@ -82,18 +66,32 @@ namespace Trickler_API.Services
                 userTrickle.AttemptsDate = today;
             }
 
+            // If the user already solved this trickle, short-circuit and return the solved state
+            if (userTrickle.IsSolved)
+            {
+                var attemptsLeftCurrent = Math.Max(0, attemptLimit - userTrickle.AttemptsToday);
+                return new SubmitAnswerResult(
+                    userTrickle.IsSolved,
+                    userTrickle.SolvedAt,
+                    userTrickle.RewardCode,
+                    attemptsLeftCurrent);
+            }
+
             if (userTrickle.AttemptsToday >= attemptLimit)
             {
                 // don't need to force this to be null because
                 // the reward is generated later
-                return new SubmitAnswerResult(false, userTrickle.RewardCode, 0);
+                return new SubmitAnswerResult(false, null, userTrickle.RewardCode, 0);
             }
 
             userTrickle.AttemptsToday++;
             userTrickle.AttemptCountTotal++;
             userTrickle.LastAttemptAt = _timeProvider.GetUtcNow().UtcDateTime;
 
-            var isCorrect = await VerifyAnswerAsync(trickleId, answer);
+            var normalizedAnswer = answer.Trim().ToLowerInvariant();
+            var isCorrect = await _context.Answers
+                .Where(a => a.TricklerId == trickleId)
+                .AnyAsync(a => a.NormalizedAnswer == normalizedAnswer);
 
             if (isCorrect && !userTrickle.IsSolved)
             {
@@ -125,7 +123,11 @@ namespace Trickler_API.Services
             }
 
             var attemptsLeft = Math.Max(0, attemptLimit - userTrickle.AttemptsToday);
-            return new SubmitAnswerResult(isCorrect, userTrickle.RewardCode, attemptsLeft);
+            return new SubmitAnswerResult(
+                userTrickle.IsSolved,
+                userTrickle.SolvedAt,
+                userTrickle.RewardCode,
+                attemptsLeft);
         }
     }
 }
