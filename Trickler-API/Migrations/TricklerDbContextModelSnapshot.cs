@@ -291,6 +291,12 @@ namespace Trickler_API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("AttemptsPerTrickle")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(-1)
+                        .HasColumnName("attempts_per_trickle");
+
                     b.Property<int?>("AvailabilityId")
                         .HasColumnType("integer")
                         .HasColumnName("availability_id");
