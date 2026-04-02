@@ -348,6 +348,12 @@ namespace Trickler_API.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("attempts_today");
 
+                    b.Property<int>("CurrentScore")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("current_score");
+
                     b.Property<bool>("IsSolved")
                         .HasColumnType("boolean")
                         .HasColumnName("is_solved");
