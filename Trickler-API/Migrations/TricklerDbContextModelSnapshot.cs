@@ -299,6 +299,15 @@ namespace Trickler_API.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("question_type");
 
+                    b.Property<string>("RewardText")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("reward_text");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("integer")
+                        .HasColumnName("score");
+
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasMaxLength(1000)
