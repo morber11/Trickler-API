@@ -24,17 +24,11 @@ namespace Trickler_API.Services
             var trickleExists = await _context.Trickles.AnyAsync(t => t.Id == trickleId);
             if (!trickleExists) return false;
 
-            var normalizedAnswer = answer.Trim().ToLower();
+            var normalizedAnswer = answer.Trim().ToLowerInvariant();
 
-#pragma warning disable CA1862 
-            // Use the 'StringComparison' method overloads to perform case-insensitive string comparisons.
-            // EF won't treat this the same with StringComparison
-            // also the EF.ILike function doesn't seem to work either 
             var match = await _context.Answers
                 .Where(a => a.TricklerId == trickleId)
-                .AnyAsync(a => a.AnswerText != null
-                && a.AnswerText.ToLower() == normalizedAnswer);
-#pragma warning restore CA1862
+                .AnyAsync(a => a.NormalizedAnswer == normalizedAnswer);
 
             return match;
         }

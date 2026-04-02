@@ -12,7 +12,20 @@ namespace Trickler_API.Models
         [Column("trickler_id", TypeName = "integer")]
         public int TricklerId { get; set; }
 
+        private string _answerText = string.Empty;
+
         [Column("answer", TypeName = "text")]
-        public string AnswerText { get; set; } = string.Empty;
+        public string AnswerText
+        {
+            get => _answerText;
+            set
+            {
+                _answerText = value?.Trim() ?? string.Empty;
+                NormalizedAnswer = _answerText.ToLowerInvariant();
+            }
+        }
+
+        [Column("normalized_answer", TypeName = "text")]
+        public string NormalizedAnswer { get; set; } = string.Empty;
     }
 }

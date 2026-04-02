@@ -29,7 +29,7 @@ namespace Trickler_API.Services
                 .Include(t => t.Availability)
                 .ToListAsync();
 
-            return allTrickles.Where(t =>
+            return [.. allTrickles.Where(t =>
             {
                 return _availabilityService.IsAvailable(t.Availability, currentDate, currentDayOfWeek);
             }).Select(t => new AvailableTrickleDto(
@@ -37,7 +37,7 @@ namespace Trickler_API.Services
                 t.Title,
                 t.Text,
                 t.Availability is not null ? MapAvailabilityToDto(t.Availability) : null
-            )).ToList();
+            ))];
         }
 
         public async Task<TrickleWithAnswersDto> CreateTrickleAsync(string title, string text, IEnumerable<AnswerDto>? answers, AvailabilityDto? availability)
@@ -55,7 +55,7 @@ namespace Trickler_API.Services
             {
                 var answerEntities = answers
                     .Where(a => a is not null && !string.IsNullOrWhiteSpace(a.Answer))
-                    .Select(a => new Answer { AnswerText = a.Answer.Trim() })
+                    .Select(a => new Answer { AnswerText = a.Answer.Trim(), NormalizedAnswer = a.Answer.Trim().ToLowerInvariant() })
                     .ToList();
 
                 if (answerEntities.Count != 0)
@@ -110,13 +110,13 @@ namespace Trickler_API.Services
                 .Include(t => t.Availability)
                 .ToListAsync();
 
-            return trickles.Select(t => new TrickleWithAnswersDto(
+            return [.. trickles.Select(t => new TrickleWithAnswersDto(
                 t.Id,
                 t.Title,
                 t.Text,
                 t.Answers.Select(a => new AnswerDto(a.Id, a.AnswerText)),
                 t.Availability is not null ? MapAvailabilityToDto(t.Availability) : null
-            )).ToList();
+            ))];
         }
 
         public async Task<TrickleWithAnswersDto> UpdateTrickleAsync(int id, string title, string text, IEnumerable<AnswerDto>? answers, AvailabilityDto? availability)
@@ -163,7 +163,7 @@ namespace Trickler_API.Services
 
                 var answerEntities = answers
                     .Where(a => a is not null && !string.IsNullOrWhiteSpace(a.Answer))
-                    .Select(a => new Answer { TricklerId = trickle.Id, AnswerText = a.Answer.Trim() })
+                    .Select(a => new Answer { TricklerId = trickle.Id, AnswerText = a.Answer.Trim(), NormalizedAnswer = a.Answer.Trim().ToLowerInvariant() })
                     .ToList();
 
                 trickle.Answers = answerEntities.Count != 0 ? answerEntities : [];

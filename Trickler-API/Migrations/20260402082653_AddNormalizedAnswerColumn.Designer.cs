@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Trickler_API.Data;
@@ -11,9 +12,11 @@ using Trickler_API.Data;
 namespace Trickler_API.Migrations
 {
     [DbContext(typeof(TricklerDbContext))]
-    partial class TricklerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260402082653_AddNormalizedAnswerColumn")]
+    partial class AddNormalizedAnswerColumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -167,11 +170,6 @@ namespace Trickler_API.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("answer");
-
-                    b.Property<string>("NormalizedAnswer")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("normalized_answer");
 
                     b.Property<int>("TricklerId")
                         .HasColumnType("integer")

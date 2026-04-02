@@ -53,6 +53,7 @@ namespace Trickler_API.Data
                 entity.Property(e => e.Id).HasColumnName("id");
                 entity.Property(e => e.TricklerId).HasColumnName("trickler_id");
                 entity.Property(e => e.AnswerText).HasColumnName("answer").HasColumnType("text");
+                entity.Property(e => e.NormalizedAnswer).HasColumnName("normalized_answer").HasColumnType("text");
                 entity.HasIndex(a => a.TricklerId);
             });
 
