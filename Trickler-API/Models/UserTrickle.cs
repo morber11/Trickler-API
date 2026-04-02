@@ -26,6 +26,9 @@ namespace Trickler_API.Models
         [Column("attempt_count_total", TypeName = "integer")]
         public int AttemptCountTotal { get; set; }
 
+        [Column("current_score", TypeName = "integer")]
+        public int CurrentScore { get; set; }
+
         [Column("last_attempt_at", TypeName = "timestamp with time zone")]
         public DateTime? LastAttemptAt { get; set; }
 

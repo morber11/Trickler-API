@@ -68,6 +68,7 @@ namespace Trickler_API.Data
                 entity.Property(e => e.AttemptsToday).HasColumnName("attempts_today");
                 entity.Property(e => e.AttemptsDate).HasColumnName("attempts_date");
                 entity.Property(e => e.AttemptCountTotal).HasColumnName("attempt_count_total");
+                entity.Property(e => e.CurrentScore).HasColumnName("current_score").HasColumnType("integer").HasDefaultValue(0);
                 entity.Property(e => e.LastAttemptAt).HasColumnName("last_attempt_at");
                 entity.Property(e => e.IsSolved).HasColumnName("is_solved");
                 entity.Property(e => e.SolvedAt).HasColumnName("solved_at");

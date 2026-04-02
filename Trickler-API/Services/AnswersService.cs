@@ -8,12 +8,14 @@ namespace Trickler_API.Services
     public class AnswersService(TricklerDbContext context,
         AvailabilityService availabilityService,
         IConfiguration? configuration,
-        TimeProvider timeProvider)
+        TimeProvider timeProvider,
+        ScoringService scoringService)
     {
         private readonly TricklerDbContext _context = context;
         private readonly AvailabilityService _availabilityService = availabilityService;
         private readonly IConfiguration? _configuration = configuration;
         private readonly TimeProvider _timeProvider = timeProvider;
+        private readonly ScoringService _scoringService = scoringService;
 
         public record SubmitAnswerResult(bool IsSolved, DateTime? SolvedAt, string? RewardCode, int AttemptsLeft);
 
@@ -35,6 +37,7 @@ namespace Trickler_API.Services
                 return new SubmitAnswerResult(false, null, null, 0);
             }
 
+            //TODO: move to a per trickle if we want to support different amounts / infinite guesses
             var attemptLimit = Constants.DefaultValueConstants.DefaultSubmitAnswerAttempts;
             if (_configuration is not null)
             {
@@ -55,7 +58,8 @@ namespace Trickler_API.Services
                     AttemptsToday = 0,
                     AttemptsDate = today,
                     AttemptCountTotal = 0,
-                    IsSolved = false
+                    IsSolved = false,
+                    CurrentScore = trickle.Score
                 };
                 _context.UserTrickles.Add(userTrickle);
             }
@@ -93,11 +97,17 @@ namespace Trickler_API.Services
                 .Where(a => a.TricklerId == trickleId)
                 .AnyAsync(a => a.NormalizedAnswer == normalizedAnswer);
 
+            var changedCurrentScore = false;
             if (isCorrect && !userTrickle.IsSolved)
             {
                 userTrickle.IsSolved = true;
                 userTrickle.SolvedAt = _timeProvider.GetUtcNow().UtcDateTime;
                 userTrickle.RewardCode = Guid.NewGuid().ToString("N");
+            }
+            else if (!isCorrect)
+            {
+                userTrickle.CurrentScore = _scoringService.ApplyWrongAttempt(userTrickle.CurrentScore);
+                changedCurrentScore = true;
             }
 
             var saveAttempts = 0;
@@ -118,6 +128,11 @@ namespace Trickler_API.Services
                     {
                         userTrickle.IsSolved = userTrickle.IsSolved || reloaded.IsSolved;
                         userTrickle.RewardCode ??= reloaded.RewardCode;
+                        if (changedCurrentScore)
+                        {
+                            var baseScore = reloaded.CurrentScore == 0 ? trickle.Score : reloaded.CurrentScore;
+                            userTrickle.CurrentScore = _scoringService.ApplyWrongAttempt(baseScore);
+                        }
                     }
                 }
             }

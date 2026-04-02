@@ -148,6 +148,7 @@ namespace Trickler_API
             builder.Services.AddScoped<AccountService>();
             builder.Services.AddScoped<AnswersService>();
             builder.Services.AddSingleton<AvailabilityService>();
+            builder.Services.AddSingleton<ScoringService>();
 
             builder.Services.AddSingleton(TimeProvider.System);
 
