@@ -10,7 +10,8 @@ namespace Trickler_API.Services
         IConfiguration? configuration,
         TimeProvider timeProvider,
         ScoringService scoringService,
-        UserDetailsService userDetailsService)
+        UserDetailsService userDetailsService,
+        UserTricklesService userTricklesService)
     {
         private readonly TricklerDbContext _context = context;
         private readonly AvailabilityService _availabilityService = availabilityService;
@@ -18,6 +19,7 @@ namespace Trickler_API.Services
         private readonly TimeProvider _timeProvider = timeProvider;
         private readonly ScoringService _scoringService = scoringService;
         private readonly UserDetailsService _userDetailsService = userDetailsService;
+        private readonly UserTricklesService _userTricklesService = userTricklesService;
 
         public record SubmitAnswerResult(bool IsSolved, DateTime? SolvedAt, string? RewardCode, int AttemptsLeft);
 
@@ -132,26 +134,8 @@ namespace Trickler_API.Services
             return (isUnlimited, attemptLimit);
         }
 
-        private async Task<UserTrickle> GetOrCreateUserTrickleAsync(string userId, Trickle trickle, DateTime today)
-        {
-            var userTrickle = await _context.UserTrickles.FirstOrDefaultAsync(u => u.UserId == userId && u.TrickleId == trickle.Id);
-            if (userTrickle is null)
-            {
-                userTrickle = new UserTrickle
-                {
-                    UserId = userId,
-                    TrickleId = trickle.Id,
-                    AttemptsToday = 0,
-                    AttemptsDate = today,
-                    AttemptCountTotal = 0,
-                    IsSolved = false,
-                    CurrentScore = trickle.Score
-                };
-                _context.UserTrickles.Add(userTrickle);
-            }
-
-            return userTrickle;
-        }
+        private Task<UserTrickle> GetOrCreateUserTrickleAsync(string userId, Trickle trickle, DateTime today)
+            => _userTricklesService.GetOrCreateUserTrickleAsync(userId, trickle, today);
 
         private static bool TryGetShortCircuitResultIfSolved(UserTrickle userTrickle, bool isUnlimited, int attemptLimit, out SubmitAnswerResult result)
         {
@@ -181,40 +165,7 @@ namespace Trickler_API.Services
         private static int ComputeAttemptsLeft(bool isUnlimited, int attemptLimit, UserTrickle userTrickle)
             => isUnlimited ? int.MaxValue : Math.Max(0, attemptLimit - userTrickle.AttemptsToday);
 
-        private async Task SaveWithConcurrencyRetryAsync(UserTrickle userTrickle, string userId, int trickleBaseScore, bool changedCurrentScore, int scoreToAdd)
-        {
-            var saveAttempts = 0;
-            while (true)
-            {
-                try
-                {
-                    await _context.SaveChangesAsync();
-                    break;
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    saveAttempts++;
-                    if (saveAttempts >= Constants.DefaultValueConstants.DefaultDBUpdateRetryAmount) throw;
-                    var reloaded = await _context.UserTrickles.AsNoTracking().FirstOrDefaultAsync(u => u.UserId == userId
-                    && u.TrickleId == userTrickle.TrickleId);
-
-                    if (reloaded is not null)
-                    {
-                        userTrickle.IsSolved = userTrickle.IsSolved || reloaded.IsSolved;
-                        userTrickle.RewardCode ??= reloaded.RewardCode;
-                        if (changedCurrentScore)
-                        {
-                            var baseScore = reloaded.CurrentScore == 0 ? trickleBaseScore : reloaded.CurrentScore;
-                            userTrickle.CurrentScore = _scoringService.ApplyWrongAttempt(baseScore);
-                        }
-                    }
-
-                    if (scoreToAdd > 0)
-                    {
-                        await _userDetailsService.MergeUserScoreFromDatabaseAsync(userId, scoreToAdd);
-                    }
-                }
-            }
-        }
+        private Task SaveWithConcurrencyRetryAsync(UserTrickle userTrickle, string userId, int trickleBaseScore, bool changedCurrentScore, int scoreToAdd)
+            => _userTricklesService.SaveWithConcurrencyRetryAsync(userTrickle, userId, trickleBaseScore, changedCurrentScore, scoreToAdd);
     }
 }

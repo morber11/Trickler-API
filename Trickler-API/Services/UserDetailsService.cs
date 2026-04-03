@@ -33,7 +33,7 @@ namespace Trickler_API.Services
             return new UserDetailsDto(entity.Id, entity.UserId, entity.TotalScore);
         }
 
-        
+
 
         public async Task<UserDetailsDto?> GetOrCreateUserDetailsAsync(string userId, string? currentUserId, bool isAdmin)
         {
@@ -106,7 +106,7 @@ namespace Trickler_API.Services
 
             var set = _context.Set<UserDetails>();
             var reloaded = await set.AsNoTracking().FirstOrDefaultAsync(u => u.UserId == userId);
-            
+
             if (reloaded is not null)
             {
                 var local = _context.UserDetails.Local.FirstOrDefault(u => u.UserId == userId);
@@ -116,7 +116,7 @@ namespace Trickler_API.Services
                 }
                 else
                 {
-                    reloaded.TotalScore = reloaded.TotalScore + scoreToAdd;
+                    reloaded.TotalScore += scoreToAdd;
                     _context.UserDetails.Attach(reloaded);
                     _context.Entry(reloaded).State = EntityState.Modified;
                 }

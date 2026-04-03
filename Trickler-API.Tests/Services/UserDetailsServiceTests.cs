@@ -52,6 +52,6 @@ namespace Trickler_API.Tests.Services
             Assert.Equal(first.Id, second.Id);
             Assert.Equal(first.UserId, second.UserId);
         }
-        
+
     }
 }

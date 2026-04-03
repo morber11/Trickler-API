@@ -54,10 +54,10 @@ namespace Trickler_API.Tests.Controllers
         [Fact]
         public async Task Post_GetOrCreate_AdminRole_AllowsAccess_ReturnsOk()
         {
-            var identity = new ClaimsIdentity(new[] {
+            var identity = new ClaimsIdentity([
                 new Claim(ClaimTypes.NameIdentifier, "other-id"),
                 new Claim(ClaimTypes.Role, RoleConstants.Admin)
-            }, "Test");
+            ], "Test");
             var controller = new UserDetailsController(_service, Mock.Of<ILogger<UserDetailsController>>())
             {
                 ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(identity) } }
@@ -73,9 +73,9 @@ namespace Trickler_API.Tests.Controllers
         [Fact]
         public async Task Post_GetOrCreate_NonAdminDifferentUserId_ReturnsNotFound()
         {
-            var identity = new ClaimsIdentity(new[] {
+            var identity = new ClaimsIdentity([
                 new Claim(ClaimTypes.NameIdentifier, "other-id")
-            }, "Test");
+            ], "Test");
             var controller = new UserDetailsController(_service, Mock.Of<ILogger<UserDetailsController>>())
             {
                 ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(identity) } }
@@ -91,9 +91,9 @@ namespace Trickler_API.Tests.Controllers
         [Fact]
         public async Task Post_GetOrCreate_OwnerSameUserId_ReturnsOk()
         {
-            var identity = new ClaimsIdentity(new[] {
+            var identity = new ClaimsIdentity([
                 new Claim(ClaimTypes.NameIdentifier, "user-a")
-            }, "Test");
+            ], "Test");
             var controller = new UserDetailsController(_service, Mock.Of<ILogger<UserDetailsController>>())
             {
                 ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(identity) } }

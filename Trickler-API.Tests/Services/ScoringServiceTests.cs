@@ -4,7 +4,7 @@ namespace Trickler_API.Tests.Services
 {
     public class ScoringServiceTests
     {
-        private readonly ScoringService _service = new ScoringService();
+        private readonly ScoringService _service = new();
 
         [Fact]
         public void ApplyWrongAttempt_100_90()
