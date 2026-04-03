@@ -49,7 +49,7 @@ namespace Trickler_API.Services
             {
                 return earlyResult;
             }
-          
+
             userTrickle.AttemptsToday++;
             userTrickle.AttemptCountTotal++;
             userTrickle.LastAttemptAt = _timeProvider.GetUtcNow().UtcDateTime;
@@ -187,9 +187,9 @@ namespace Trickler_API.Services
                     saveAttempts++;
                     if (saveAttempts >= Constants.DefaultValueConstants.DefaultDBUpdateRetryAmount) throw;
 
-                    var reloaded = await _context.UserTrickles.AsNoTracking().FirstOrDefaultAsync(u => u.UserId == userId 
+                    var reloaded = await _context.UserTrickles.AsNoTracking().FirstOrDefaultAsync(u => u.UserId == userId
                     && u.TrickleId == userTrickle.TrickleId);
-                    
+
                     if (reloaded is not null)
                     {
                         userTrickle.IsSolved = userTrickle.IsSolved || reloaded.IsSolved;

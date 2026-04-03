@@ -71,11 +71,11 @@ namespace Trickler_API.Controllers
         public async Task<IActionResult> Create([FromBody] CreateTrickleRequest request)
         {
             var dto = await _tricklerService.CreateTrickleAsync(
-                request.Title, 
-                request.Text, 
-                request.Answers, 
-                request.Availability, 
-                request.Score, 
+                request.Title,
+                request.Text,
+                request.Answers,
+                request.Availability,
+                request.Score,
                 request.RewardText,
                 request.AttemptsPerTrickle);
             return CreatedAtAction(nameof(GetById), new { id = dto.Id }, dto);

@@ -38,9 +38,9 @@ namespace Trickler_API.Controllers
             }
 
             return Ok(new SubmitAnswerResponse(
-                result.IsSolved, 
-                result.SolvedAt, 
-                result.RewardCode, 
+                result.IsSolved,
+                result.SolvedAt,
+                result.RewardCode,
                 result.AttemptsLeft));
         }
     }

@@ -1,7 +1,7 @@
 using FluentValidation;
+using Trickler_API.Constants;
 using Trickler_API.DTO;
 using Trickler_API.Models;
-using Trickler_API.Constants;
 
 namespace Trickler_API.Validators
 {

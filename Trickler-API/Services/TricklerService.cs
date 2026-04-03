@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using Trickler_API.Constants;
 using Trickler_API.Data;
 using Trickler_API.DTO;
 using Trickler_API.Exceptions;
-using Trickler_API.Constants;
 using Trickler_API.Models;
 
 namespace Trickler_API.Services
@@ -43,11 +43,11 @@ namespace Trickler_API.Services
         }
 
         public async Task<TrickleWithAnswersDto> CreateTrickleAsync(
-            string title, 
-            string text, 
-            IEnumerable<AnswerDto>? answers, 
-            AvailabilityDto? availability, 
-            int score = 0, 
+            string title,
+            string text,
+            IEnumerable<AnswerDto>? answers,
+            AvailabilityDto? availability,
+            int score = 0,
             string? rewardText = null,
             int attemptsPerTrickle = -1)
         {
@@ -138,12 +138,12 @@ namespace Trickler_API.Services
         }
 
         public async Task<TrickleWithAnswersDto> UpdateTrickleAsync(
-            int id, 
-            string title, 
-            string text, 
-            IEnumerable<AnswerDto>? answers, 
-            AvailabilityDto? availability, 
-            int score = 0, 
+            int id,
+            string title,
+            string text,
+            IEnumerable<AnswerDto>? answers,
+            AvailabilityDto? availability,
+            int score = 0,
             string? rewardText = null,
             int attemptsPerTrickle = -1)
         {
