@@ -143,9 +143,19 @@ namespace Trickler_API.Controllers
         {
             _logger.LogInformation("User initiated logout");
 
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            try
+            {
+                await _accountService.SignOutAsync();
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-            return NoContent();
+                _logger.LogInformation("Logout completed for request {Path}", Request.Path);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Logout failed for request {Path}", Request.Path);
+                throw;
+            }
         }
     }
 }

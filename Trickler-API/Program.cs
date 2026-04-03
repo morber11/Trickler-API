@@ -53,6 +53,23 @@ namespace Trickler_API
                 options.Cookie.HttpOnly = true;
                 options.Cookie.SecurePolicy = isDevelopment ? CookieSecurePolicy.None : CookieSecurePolicy.Always;
                 options.Cookie.SameSite = SameSiteMode.Strict;
+
+                // return status codes instead of redirecting to non-existent MVC pages
+                options.Events.OnRedirectToLogin = ctx =>
+                {
+                    ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    return Task.CompletedTask;
+                };
+                options.Events.OnRedirectToAccessDenied = ctx =>
+                {
+                    ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    return Task.CompletedTask;
+                };
+                options.Events.OnRedirectToLogout = ctx =>
+                {
+                    ctx.Response.StatusCode = StatusCodes.Status204NoContent;
+                    return Task.CompletedTask;
+                };
             });
 
             // Only add OIDC if properly configured (not using placeholder values) because it is a wip for now

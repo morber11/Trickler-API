@@ -1,20 +1,19 @@
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Trickler_API.Constants;
-using Trickler_API.Data;
 using Trickler_API.Models;
 
 namespace Trickler_API.Services
 {
-    public class AccountService(TricklerDbContext context,
+    public class AccountService(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
+        UserTricklesService userTricklesService,
         ILogger<AccountService> logger)
     {
-        private readonly TricklerDbContext _context = context;
         private readonly UserManager<ApplicationUser> _userManager = userManager;
         private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
+        private readonly UserTricklesService _userTricklesService = userTricklesService;
         private readonly ILogger<AccountService> _logger = logger;
 
         public async Task<(bool Succeeded, string? ErrorMessage, ApplicationUser? User, IList<string> Roles)> ValidateAndSignInAsync(string email, string password)
@@ -112,13 +111,9 @@ namespace Trickler_API.Services
 
             var roles = user is not null ? await _userManager.GetRolesAsync(user) : Array.Empty<string>();
 
-            var solvedCount = await _context.UserTrickles.CountAsync(ut => ut.UserId == userId && ut.IsSolved);
-            var recentSolved = await _context.UserTrickles
-                .Where(ut => ut.UserId == userId && ut.IsSolved)
-                .OrderByDescending(ut => ut.SolvedAt)
-                .Take(5)
-                .Select(ut => new { ut.TrickleId, ut.SolvedAt, ut.RewardCode })
-                .ToListAsync();
+            var solvedCount = await _userTricklesService.CountSolvedAsync(userId);
+            var recentSolvedEntities = await _userTricklesService.GetRecentSolvedAsync(userId, take: 5);
+            var recentSolved = recentSolvedEntities.Select(ut => new { ut.TrickleId, ut.SolvedAt, ut.RewardCode }).ToList();
 
             return new
             {
@@ -132,6 +127,12 @@ namespace Trickler_API.Services
                 solvedCount,
                 recentSolved
             };
+        }
+
+        public async Task SignOutAsync()
+        {
+            await _signInManager.SignOutAsync();
+            _logger.LogInformation("User signed out via AccountService");
         }
     }
 }
