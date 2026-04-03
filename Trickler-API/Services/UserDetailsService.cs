@@ -18,19 +18,28 @@ namespace Trickler_API.Services
 
             if (existing is not null)
             {
-                return new UserDetailsDto(existing.Id, existing.UserId, existing.TotalScore);
+                return new UserDetailsDto(
+                    existing.Id,
+                    existing.UserId,
+                    existing.TotalScore,
+                    existing.IsPrivate);
             }
 
             var entity = new UserDetails
             {
                 UserId = userId,
-                TotalScore = 0
+                TotalScore = 0,
+                IsPrivate = false
             };
 
             await set.AddAsync(entity);
             await _context.SaveChangesAsync();
 
-            return new UserDetailsDto(entity.Id, entity.UserId, entity.TotalScore);
+            return new UserDetailsDto(
+                entity.Id,
+                entity.UserId,
+                entity.TotalScore,
+                entity.IsPrivate);
         }
 
 
@@ -47,7 +56,7 @@ namespace Trickler_API.Services
             var existing = await set.SingleOrDefaultAsync(u => u.UserId == userId);
             if (existing is not null)
             {
-                return new UserDetailsDto(existing.Id, existing.UserId, existing.TotalScore);
+                return new UserDetailsDto(existing.Id, existing.UserId, existing.TotalScore, existing.IsPrivate);
             }
 
             var entity = new UserDetails
@@ -67,12 +76,20 @@ namespace Trickler_API.Services
                 var reloaded = await set.SingleOrDefaultAsync(u => u.UserId == userId);
                 if (reloaded is not null)
                 {
-                    return new UserDetailsDto(reloaded.Id, reloaded.UserId, reloaded.TotalScore);
+                    return new UserDetailsDto(
+                        reloaded.Id,
+                        reloaded.UserId,
+                        reloaded.TotalScore,
+                        reloaded.IsPrivate);
                 }
                 throw;
             }
 
-            return new UserDetailsDto(entity.Id, entity.UserId, entity.TotalScore);
+            return new UserDetailsDto(
+                entity.Id,
+                entity.UserId,
+                entity.TotalScore,
+                entity.IsPrivate);
         }
 
         public async Task UpdateUserScoreAsync(string userId, int scoreToAdd)
@@ -88,7 +105,8 @@ namespace Trickler_API.Services
                 var entity = new UserDetails
                 {
                     UserId = userId,
-                    TotalScore = scoreToAdd
+                    TotalScore = scoreToAdd,
+                    IsPrivate = false
                 };
                 await set.AddAsync(entity);
             }
@@ -123,7 +141,12 @@ namespace Trickler_API.Services
             }
             else
             {
-                var newDetails = new UserDetails { UserId = userId, TotalScore = scoreToAdd };
+                var newDetails = new UserDetails
+                {
+                    UserId = userId,
+                    TotalScore = scoreToAdd,
+                    IsPrivate = false
+                };
                 _context.UserDetails.Add(newDetails);
             }
         }
