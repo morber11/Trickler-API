@@ -10,12 +10,14 @@ namespace Trickler_API.Services
     public class TricklerService(TricklerDbContext context,
         ILogger<TricklerService> logger,
         TimeProvider timeProvider,
-        AvailabilityService availabilityService)
+        AvailabilityService availabilityService,
+        AnswersService answersService)
     {
         private readonly TricklerDbContext _context = context;
         private readonly ILogger<TricklerService> _logger = logger;
         private readonly TimeProvider _timeProvider = timeProvider; // better for mocking instead of using DateTime.UTCNow directly
         private readonly AvailabilityService _availabilityService = availabilityService;
+        private readonly AnswersService _answersService = answersService;
 
         public async Task<List<AvailableTrickleDto>> GetAvailableTricklesAsync()
         {
@@ -185,10 +187,7 @@ namespace Trickler_API.Services
 
             if (answers is not null)
             {
-                if (trickle.Answers is not null && trickle.Answers.Count != 0)
-                {
-                    _context.Answers.RemoveRange(trickle.Answers);
-                }
+                await _answersService.RemoveAnswersForTrickleAsync(trickle);
 
                 var answerEntities = answers
                     .Where(a => a is not null && !string.IsNullOrWhiteSpace(a.Answer))
@@ -230,10 +229,7 @@ namespace Trickler_API.Services
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                if (trickle.Answers is not null && trickle.Answers.Count != 0)
-                {
-                    _context.Answers.RemoveRange(trickle.Answers);
-                }
+                await _answersService.RemoveAnswersForTrickleAsync(trickle);
 
                 _context.Trickles.Remove(trickle);
 

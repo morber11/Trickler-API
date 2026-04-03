@@ -167,5 +167,36 @@ namespace Trickler_API.Services
 
         private Task SaveWithConcurrencyRetryAsync(UserTrickle userTrickle, string userId, int trickleBaseScore, bool changedCurrentScore, int scoreToAdd)
             => _userTricklesService.SaveWithConcurrencyRetryAsync(userTrickle, userId, trickleBaseScore, changedCurrentScore, scoreToAdd);
+
+        public async Task RemoveAnswersForTrickleAsync(Trickle trickle)
+        {
+            if (trickle is null) return;
+
+            List<Answer> answers;
+
+            // this is disgusting but it's simple
+            if (trickle.Answers is not null && trickle.Answers.Count != 0)
+            {
+                answers = trickle.Answers.ToList();
+            }
+            else
+            {
+                answers = await _context.Answers.Where(a => a.TricklerId == trickle.Id).ToListAsync();
+            }
+
+            if (answers.Count != 0)
+            {
+                _context.Answers.RemoveRange(answers);
+            }
+        }
+
+        public async Task RemoveAnswersByTrickleIdAsync(int trickleId)
+        {
+            var answers = await _context.Answers.Where(a => a.TricklerId == trickleId).ToListAsync();
+            if (answers.Count != 0)
+            {
+                _context.Answers.RemoveRange(answers);
+            }
+        }
     }
 }

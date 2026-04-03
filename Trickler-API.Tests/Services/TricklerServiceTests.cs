@@ -29,7 +29,14 @@ namespace Trickler_API.Tests.Services
             _loggerMock = new Mock<ILogger<TricklerService>>();
             _timeProviderMock = new Mock<TimeProvider>();
             _timeProviderMock.Setup(tp => tp.GetUtcNow()).Returns(DateTimeOffset.UtcNow);
-            _service = new TricklerService(_context, _loggerMock.Object, _timeProviderMock.Object, new AvailabilityService());
+
+            var availabilityService = new AvailabilityService();
+            var scoringService = new ScoringService();
+            var userDetailsService = new UserDetailsService(_context);
+            var userTricklesService = new UserTricklesService(_context, scoringService, _timeProviderMock.Object, userDetailsService);
+            var answersService = new AnswersService(_context, availabilityService, null, _timeProviderMock.Object, scoringService, userDetailsService, userTricklesService);
+
+            _service = new TricklerService(_context, _loggerMock.Object, _timeProviderMock.Object, availabilityService, answersService);
         }
 
         public void Dispose()
