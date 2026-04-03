@@ -333,6 +333,34 @@ namespace Trickler_API.Migrations
                     b.ToTable("trickles", (string)null);
                 });
 
+            modelBuilder.Entity("Trickler_API.Models.UserDetails", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("TotalScore")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("total_score");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("user_details", (string)null);
+                });
+
             modelBuilder.Entity("Trickler_API.Models.UserTrickle", b =>
                 {
                     b.Property<int>("Id")
@@ -471,6 +499,16 @@ namespace Trickler_API.Migrations
                         .HasConstraintName("fk_trickles_availabilities_availability_id");
 
                     b.Navigation("Availability");
+                });
+
+            modelBuilder.Entity("Trickler_API.Models.UserDetails", b =>
+                {
+                    b.HasOne("Trickler_API.Models.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_user_details_users_user_id");
                 });
 
             modelBuilder.Entity("Trickler_API.Models.UserTrickle", b =>
