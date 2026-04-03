@@ -189,14 +189,5 @@ namespace Trickler_API.Services
                 _context.Answers.RemoveRange(answers);
             }
         }
-
-        public async Task RemoveAnswersByTrickleIdAsync(int trickleId)
-        {
-            var answers = await _context.Answers.Where(a => a.TricklerId == trickleId).ToListAsync();
-            if (answers.Count != 0)
-            {
-                _context.Answers.RemoveRange(answers);
-            }
-        }
     }
 }
