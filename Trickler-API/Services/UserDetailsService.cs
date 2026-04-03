@@ -74,5 +74,58 @@ namespace Trickler_API.Services
 
             return new UserDetailsDto(entity.Id, entity.UserId, entity.TotalScore);
         }
+
+        public async Task UpdateUserScoreAsync(string userId, int scoreToAdd)
+        {
+            if (string.IsNullOrWhiteSpace(userId)) throw new ArgumentException(null, nameof(userId));
+            if (scoreToAdd <= 0) return;
+
+            var set = _context.Set<UserDetails>();
+            var existing = await set.FirstOrDefaultAsync(u => u.UserId == userId);
+
+            if (existing is null)
+            {
+                var entity = new UserDetails
+                {
+                    UserId = userId,
+                    TotalScore = scoreToAdd
+                };
+                await set.AddAsync(entity);
+            }
+            else
+            {
+                existing.TotalScore += scoreToAdd;
+                _context.Entry(existing).State = EntityState.Modified;
+            }
+        }
+
+        public async Task MergeUserScoreFromDatabaseAsync(string userId, int scoreToAdd)
+        {
+            if (string.IsNullOrWhiteSpace(userId)) throw new ArgumentException(null, nameof(userId));
+            if (scoreToAdd <= 0) return;
+
+            var set = _context.Set<UserDetails>();
+            var reloaded = await set.AsNoTracking().FirstOrDefaultAsync(u => u.UserId == userId);
+            
+            if (reloaded is not null)
+            {
+                var local = _context.UserDetails.Local.FirstOrDefault(u => u.UserId == userId);
+                if (local is not null)
+                {
+                    local.TotalScore = reloaded.TotalScore + scoreToAdd;
+                }
+                else
+                {
+                    reloaded.TotalScore = reloaded.TotalScore + scoreToAdd;
+                    _context.UserDetails.Attach(reloaded);
+                    _context.Entry(reloaded).State = EntityState.Modified;
+                }
+            }
+            else
+            {
+                var newDetails = new UserDetails { UserId = userId, TotalScore = scoreToAdd };
+                _context.UserDetails.Add(newDetails);
+            }
+        }
     }
 }
