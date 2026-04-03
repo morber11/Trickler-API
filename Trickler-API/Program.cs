@@ -145,6 +145,7 @@ namespace Trickler_API
             // Register services
             builder.Services.AddScoped<TricklerService>();
             builder.Services.AddScoped<AuthService>();
+            builder.Services.AddScoped<UserDetailsService>();
             builder.Services.AddScoped<AccountService>();
             builder.Services.AddScoped<AnswersService>();
             builder.Services.AddSingleton<AvailabilityService>();

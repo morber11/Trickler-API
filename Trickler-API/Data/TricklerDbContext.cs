@@ -11,6 +11,7 @@ namespace Trickler_API.Data
         public virtual DbSet<Answer> Answers { get; set; }
         public virtual DbSet<Availability> Availabilities { get; set; }
         public virtual DbSet<UserTrickle> UserTrickles { get; set; }
+        public virtual DbSet<UserDetails> UserDetails { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -36,10 +37,10 @@ namespace Trickler_API.Data
                       .HasConstraintName("fk_trickles_availabilities_availability_id")
                       .OnDelete(DeleteBehavior.SetNull);
                 entity.HasIndex(t => t.AvailabilityId);
-                        entity.Property(e => e.AttemptsPerTrickle)
-                            .HasColumnName("attempts_per_trickle")
-                            .HasDefaultValue(-1)
-                            .IsRequired();
+                entity.Property(e => e.AttemptsPerTrickle)
+                    .HasColumnName("attempts_per_trickle")
+                    .HasDefaultValue(-1)
+                    .IsRequired();
             });
 
             modelBuilder.Entity<Availability>(entity =>
@@ -86,6 +87,22 @@ namespace Trickler_API.Data
                       .HasForeignKey(u => u.TrickleId)
                       .HasConstraintName("fk_user_trickles_trickles_trickler_id")
                       .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<UserDetails>(entity =>
+            {
+                entity.ToTable("user_details");
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.UserId).HasColumnName("user_id");
+                entity.Property(e => e.TotalScore).HasColumnName("total_score").HasColumnType("integer").HasDefaultValue(0);
+
+                entity.HasIndex(e => e.UserId).IsUnique();
+
+                entity.HasOne<ApplicationUser>()
+                      .WithMany()
+                      .HasForeignKey(e => e.UserId)
+                      .HasConstraintName("fk_user_details_users_user_id")
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<ApplicationUser>().ToTable("users");
