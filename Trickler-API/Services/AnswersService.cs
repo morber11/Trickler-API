@@ -82,7 +82,7 @@ namespace Trickler_API.Services
                 attemptsLeft);
         }
 
-        private string NormalizeAnswer(string answer) => answer.Trim().ToLowerInvariant();
+        private static string NormalizeAnswer(string answer) => answer.Trim().ToLowerInvariant();
 
         private async Task<Trickle> LoadTrickleAsync(int trickleId)
         {
@@ -144,7 +144,7 @@ namespace Trickler_API.Services
             return userTrickle;
         }
 
-        private bool TryGetShortCircuitResultIfSolved(UserTrickle userTrickle, bool isUnlimited, int attemptLimit, out SubmitAnswerResult result)
+        private static bool TryGetShortCircuitResultIfSolved(UserTrickle userTrickle, bool isUnlimited, int attemptLimit, out SubmitAnswerResult result)
         {
             if (userTrickle.IsSolved)
             {
@@ -167,9 +167,9 @@ namespace Trickler_API.Services
             return false;
         }
 
-        private string GenerateRewardCode() => Guid.NewGuid().ToString("N");
+        private static string GenerateRewardCode() => Guid.NewGuid().ToString("N");
 
-        private int ComputeAttemptsLeft(bool isUnlimited, int attemptLimit, UserTrickle userTrickle)
+        private static int ComputeAttemptsLeft(bool isUnlimited, int attemptLimit, UserTrickle userTrickle)
             => isUnlimited ? int.MaxValue : Math.Max(0, attemptLimit - userTrickle.AttemptsToday);
 
         private async Task SaveWithConcurrencyRetryAsync(UserTrickle userTrickle, string userId, int trickleBaseScore, bool changedCurrentScore)
