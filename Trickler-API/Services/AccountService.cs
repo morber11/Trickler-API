@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using Trickler_API.Constants;
+using Trickler_API.DTO;
 using Trickler_API.Models;
 
 namespace Trickler_API.Services
@@ -16,35 +17,55 @@ namespace Trickler_API.Services
         private readonly UserTricklesService _userTricklesService = userTricklesService;
         private readonly ILogger<AccountService> _logger = logger;
 
-        public async Task<(bool Succeeded, string? ErrorMessage, ApplicationUser? User, IList<string> Roles)> ValidateAndSignInAsync(string email, string password)
+        public async Task<SignInResultDto> ValidateAndSignInAsync(string identifier, string password)
         {
-            var user = await _userManager.FindByEmailAsync(email);
+            var user = await _userManager.FindByNameAsync(identifier) ?? await _userManager.FindByEmailAsync(identifier);
 
             if (user is null)
             {
-                return (false, MessageConstants.Auth.InvalidCredentials, null, Array.Empty<string>());
+                return new SignInResultDto(
+                    false,
+                    MessageConstants.Auth.InvalidCredentials,
+                    null,
+                    []);
             }
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure: false);
-
             if (!result.Succeeded)
             {
-                return (false, MessageConstants.Auth.InvalidCredentials, null, Array.Empty<string>());
+                return new SignInResultDto(
+                    false,
+                    MessageConstants.Auth.InvalidCredentials,
+                    null,
+                    []);
             }
 
             await _signInManager.SignInAsync(user, isPersistent: false);
             var roles = await _userManager.GetRolesAsync(user);
 
-            _logger.LogInformation("User {Email} logged in successfully", email);
+            _logger.LogInformation("User {Identifier} logged in successfully", identifier);
 
-            return (true, null, user, roles);
+            var userDto = new SignedInUserDto(user.Id, user.UserName, user.Email);
+            return new SignInResultDto(
+                true,
+                null,
+                userDto,
+                roles);
         }
 
-        public async Task<(bool Succeeded, string? ErrorMessage, ApplicationUser? User)> RegisterAsync(string email, string password)
+        public async Task<(bool Succeeded, string? ErrorMessage, ApplicationUser? User)> RegisterAsync(string username, string email, string password)
         {
+            var existingByName = await _userManager.FindByNameAsync(username);
+            var existingByEmail = await _userManager.FindByEmailAsync(email);
+
+            if (existingByName is not null || existingByEmail is not null)
+            {
+                return (false, MessageConstants.Account.UserAlreadyExists, null);
+            }
+
             var user = new ApplicationUser
             {
-                UserName = email,
+                UserName = username,
                 Email = email
             };
 

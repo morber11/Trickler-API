@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
@@ -30,12 +29,14 @@ namespace Trickler_API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+            if (string.IsNullOrWhiteSpace(request.Username) ||
+                string.IsNullOrWhiteSpace(request.Email) ||
+                string.IsNullOrWhiteSpace(request.Password))
             {
                 return BadRequest(new MessageResponse(MessageConstants.Account.EmailAndPasswordRequired));
             }
 
-            var (Succeeded, ErrorMessage, CreatedUser) = await _accountService.RegisterAsync(request.Email, request.Password);
+            var (Succeeded, ErrorMessage, CreatedUser) = await _accountService.RegisterAsync(request.Username, request.Email, request.Password);
             if (!Succeeded)
             {
                 return BadRequest(new ErrorResponse(MessageConstants.Account.RegistrationFailed, ErrorMessage));
@@ -54,27 +55,28 @@ namespace Trickler_API.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginRequest request, [FromQuery] string? returnUrl = null)
         {
-            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+            if (string.IsNullOrWhiteSpace(request.Identifier) || string.IsNullOrWhiteSpace(request.Password))
             {
                 return BadRequest(new MessageResponse(MessageConstants.Account.EmailAndPasswordRequired));
             }
 
-            var (succeeded, errorMessage, user, roles) = await _accountService.ValidateAndSignInAsync(request.Email, request.Password);
-            if (!succeeded)
+            var signIn = await _accountService.ValidateAndSignInAsync(request.Identifier, request.Password);
+            if (!signIn.Succeeded)
             {
-                _logger.LogWarning("Failed login attempt for email: {Email}", request.Email);
-                return Unauthorized(new MessageResponse(errorMessage ?? MessageConstants.Auth.InvalidCredentials));
+                _logger.LogWarning("Failed login attempt for identifier: {Identifier}", request.Identifier);
+                return Unauthorized(new MessageResponse(signIn.ErrorMessage ?? MessageConstants.Auth.InvalidCredentials));
             }
 
-            _logger.LogInformation("User {Email} logged in successfully", request.Email);
+            _logger.LogInformation("User {Identifier} logged in successfully", request.Identifier);
 
             return Ok(new LoginResponse(
                 MessageConstants.Auth.LoginSuccessful,
-                user!.Id,
-                user.Email,
+                signIn.User!.Id, // user will never be null here
+                signIn.User!.UserName,
+                signIn.User!.Email,
                 "local",
                 returnUrl ?? "/",
-                roles));
+                signIn.Roles));
         }
 
         /// <summary>

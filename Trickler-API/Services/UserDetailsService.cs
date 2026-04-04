@@ -9,7 +9,16 @@ namespace Trickler_API.Services
     {
         private readonly TricklerDbContext _context = context;
 
-        public async Task<UserDetailsDto> AddUserDetailsAsync(string userId)
+        private async Task<string> GetUserNameForIdAsync(string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId)) return string.Empty;
+
+            var appUser = await _context.Users.AsNoTracking().SingleOrDefaultAsync(u => u.Id == userId);
+
+            return appUser?.UserName ?? string.Empty;
+        }
+
+        public async Task<UserDetailsResponseDto> AddUserDetailsAsync(string userId)
         {
             if (string.IsNullOrWhiteSpace(userId)) throw new ArgumentException(null, nameof(userId));
 
@@ -18,11 +27,13 @@ namespace Trickler_API.Services
 
             if (existing is not null)
             {
-                return new UserDetailsDto(
+                var existingUserName = await GetUserNameForIdAsync(userId);
+                return new UserDetailsResponseDto(
                     existing.Id,
                     existing.UserId,
                     existing.TotalScore,
-                    existing.IsPrivate);
+                    existing.IsPrivate,
+                    existingUserName);
             }
 
             var entity = new UserDetails
@@ -35,16 +46,18 @@ namespace Trickler_API.Services
             await set.AddAsync(entity);
             await _context.SaveChangesAsync();
 
-            return new UserDetailsDto(
+            var newUserName = await GetUserNameForIdAsync(userId);
+            return new UserDetailsResponseDto(
                 entity.Id,
                 entity.UserId,
                 entity.TotalScore,
-                entity.IsPrivate);
+                entity.IsPrivate,
+                newUserName);
         }
 
 
 
-        public async Task<UserDetailsDto?> GetOrCreateUserDetailsAsync(string userId, string? currentUserId, bool isAdmin)
+        public async Task<UserDetailsResponseDto?> GetOrCreateUserDetailsAsync(string userId, string? currentUserId, bool isAdmin)
         {
             if (!isAdmin)
             {
@@ -56,7 +69,13 @@ namespace Trickler_API.Services
             var existing = await set.SingleOrDefaultAsync(u => u.UserId == userId);
             if (existing is not null)
             {
-                return new UserDetailsDto(existing.Id, existing.UserId, existing.TotalScore, existing.IsPrivate);
+                var existingUserName = await GetUserNameForIdAsync(userId);
+                return new UserDetailsResponseDto(
+                    existing.Id,
+                    existing.UserId,
+                    existing.TotalScore,
+                    existing.IsPrivate,
+                    existingUserName);
             }
 
             var entity = new UserDetails
@@ -76,20 +95,24 @@ namespace Trickler_API.Services
                 var reloaded = await set.SingleOrDefaultAsync(u => u.UserId == userId);
                 if (reloaded is not null)
                 {
-                    return new UserDetailsDto(
+                    var reloadedUserName = await GetUserNameForIdAsync(userId);
+                    return new UserDetailsResponseDto(
                         reloaded.Id,
                         reloaded.UserId,
                         reloaded.TotalScore,
-                        reloaded.IsPrivate);
+                        reloaded.IsPrivate,
+                        reloadedUserName);
                 }
                 throw;
             }
 
-            return new UserDetailsDto(
+            var createdUserName = await GetUserNameForIdAsync(userId);
+            return new UserDetailsResponseDto(
                 entity.Id,
                 entity.UserId,
                 entity.TotalScore,
-                entity.IsPrivate);
+                entity.IsPrivate,
+                createdUserName);
         }
 
         public async Task UpdateUserScoreAsync(string userId, int scoreToAdd)

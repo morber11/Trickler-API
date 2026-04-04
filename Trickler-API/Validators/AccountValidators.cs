@@ -1,5 +1,4 @@
 using FluentValidation;
-using Microsoft.AspNetCore.Identity.Data;
 using Trickler_API.DTO;
 
 namespace Trickler_API.Validators
@@ -8,6 +7,10 @@ namespace Trickler_API.Validators
     {
         public RegisterRequestValidator()
         {
+            RuleFor(x => x.Username)
+                .NotEmpty().WithMessage("Username is required")
+                .MaximumLength(100);
+
             RuleFor(x => x.Email)
                 .NotEmpty().WithMessage("Email is required")
                 .EmailAddress().WithMessage("Invalid email address")
@@ -26,9 +29,8 @@ namespace Trickler_API.Validators
     {
         public LoginRequestValidator()
         {
-            RuleFor(x => x.Email)
-                .NotEmpty().WithMessage("Email is required")
-                .EmailAddress().WithMessage("Invalid email address");
+            RuleFor(x => x.Identifier)
+                .NotEmpty().WithMessage("Identifier (username or email) is required");
 
             RuleFor(x => x.Password)
                 .NotEmpty().WithMessage("Password is required");

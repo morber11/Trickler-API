@@ -12,6 +12,7 @@ namespace Trickler_API.Constants
             public const string EmailAndPasswordRequired = "Email and password are required";
             public const string RegistrationFailed = "Registration failed";
             public const string UserRegisteredSuccessfully = "User registered successfully";
+            public const string UserAlreadyExists = "A user with this username or email already exists";
             public const string CannotChangePasswordForOidcUsers = "Cannot change password for OIDC authenticated users";
             public const string OldAndNewPasswordRequired = "Old password and new password are required";
             public const string FailedToChangePassword = "Failed to change password";

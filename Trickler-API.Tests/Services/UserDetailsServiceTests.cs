@@ -53,5 +53,41 @@ namespace Trickler_API.Tests.Services
             Assert.Equal(first.UserId, second.UserId);
         }
 
+        [Fact]
+        public async Task AddUserDetailsAsync_CreatesRecord_WithUsernameFromUser()
+        {
+            var userId = "user-with-username";
+            var appUser = new ApplicationUser { Id = userId, UserName = "bob", Email = "bob@example.com" };
+            _context.Users.Add(appUser);
+            await _context.SaveChangesAsync();
+
+            var dto = await _service.AddUserDetailsAsync(userId);
+
+            Assert.NotNull(dto);
+            Assert.Equal(userId, dto.UserId);
+            Assert.Equal("bob", dto.Username);
+
+            var entity = await _context.Set<UserDetails>().SingleAsync(u => u.UserId == userId);
+            Assert.Equal(userId, entity.UserId);
+        }
+
+        [Fact]
+        public async Task GetOrCreateUserDetailsAsync_ReturnsExisting_WithUsername()
+        {
+            var userId = "existing-user";
+            var appUser = new ApplicationUser { Id = userId, UserName = "alice", Email = "alice@example.com" };
+            _context.Users.Add(appUser);
+
+            var details = new UserDetails { UserId = userId, TotalScore = 5, IsPrivate = false };
+            _context.Set<UserDetails>().Add(details);
+            await _context.SaveChangesAsync();
+
+            var dto = await _service.GetOrCreateUserDetailsAsync(userId, userId, true);
+
+            Assert.NotNull(dto);
+            Assert.Equal(userId, dto!.UserId);
+            Assert.Equal("alice", dto.Username);
+        }
+
     }
 }

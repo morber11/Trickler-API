@@ -66,7 +66,7 @@ namespace Trickler_API.Tests.Controllers
             var result = await controller.GetOrCreateUserDetails("owner-id");
 
             var ok = Assert.IsType<OkObjectResult>(result);
-            var dto = Assert.IsType<UserDetailsDto>(ok.Value);
+            var dto = Assert.IsType<UserDetailsResponseDto>(ok.Value);
             Assert.Equal("owner-id", dto.UserId);
         }
 
@@ -102,7 +102,7 @@ namespace Trickler_API.Tests.Controllers
             var result = await controller.GetOrCreateUserDetails("user-a");
 
             var ok = Assert.IsType<OkObjectResult>(result);
-            var dto = Assert.IsType<UserDetailsDto>(ok.Value);
+            var dto = Assert.IsType<UserDetailsResponseDto>(ok.Value);
             Assert.Equal("user-a", dto.UserId);
         }
     }

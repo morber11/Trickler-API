@@ -38,11 +38,18 @@ namespace Trickler_API.Data.Seeders
             const string adminRole = RoleConstants.Admin;
             const string userRole = RoleConstants.User;
             const string adminEmail = "admin@trickler.com";
+            const string adminUsername = "admin";
 
             await EnsureRoleAsync(roleManager, logger, adminRole);
             await EnsureRoleAsync(roleManager, logger, userRole);
 
-            var admin = await EnsureAdminUserAsync(userManager, logger, adminEmail, adminPassword, adminRole);
+            var admin = await EnsureAdminUserAsync(
+                userManager,
+                logger,
+                adminUsername,
+                adminEmail,
+                adminPassword,
+                adminRole);
 
             if (admin is null)
             {
@@ -73,19 +80,25 @@ namespace Trickler_API.Data.Seeders
             }
         }
 
-        private static async Task<ApplicationUser?> EnsureAdminUserAsync(UserManager<ApplicationUser> userManager, ILogger? logger, string email, string password, string role)
+        private static async Task<ApplicationUser?> EnsureAdminUserAsync(
+            UserManager<ApplicationUser> userManager,
+            ILogger? logger,
+            string username,
+            string email,
+            string password,
+            string role)
         {
-            var user = await userManager.FindByEmailAsync(email);
+            var user = await userManager.FindByNameAsync(username) ?? await userManager.FindByEmailAsync(email);
 
             if (user is not null)
             {
-                logger?.LogInformation("Admin user '{Email}' already exists.", email);
+                logger?.LogInformation("Admin user already exists");
                 return user;
             }
 
             var newUser = new ApplicationUser
             {
-                UserName = email,
+                UserName = username,
                 Email = email,
                 EmailConfirmed = true
             };

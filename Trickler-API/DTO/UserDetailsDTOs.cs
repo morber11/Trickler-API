@@ -1,8 +1,9 @@
 namespace Trickler_API.DTO
 {
-    public record UserDetailsDto(
+    public record UserDetailsResponseDto(
         int Id,
         string UserId,
         int TotalScore,
-        bool IsPrivate);
+        bool IsPrivate,
+        string Username);
 }

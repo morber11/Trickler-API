@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 using Trickler_API.Constants;
 using Trickler_API.DTO;
+using Trickler_API.Models;
 using Trickler_API.Services;
 
 namespace Trickler_API.Controllers
@@ -63,19 +64,25 @@ namespace Trickler_API.Controllers
 
             _logger.LogInformation("User authenticated via OIDC, subject: {Subject}, email: {Email}", oidcSub, email);
 
+            ApplicationUser? localUser = null;
             if (!string.IsNullOrEmpty(email))
             {
-                var (_, _) = await _authService.EnsureLocalUserForOidcAsync(email, oidcSub);
-                // logging handled in service; CreatedUser may be null on failure
+                var (created, user) = await _authService.EnsureLocalUserForOidcAsync(email, oidcSub);
+                localUser = user;
             }
+
+            var username = localUser?.UserName ?? User.FindFirst(ClaimTypes.Name)?.Value ?? email ?? string.Empty;
+            var returnedUserId = localUser?.Id ?? userId;
+            var roles = localUser is not null ? await _authService.GetRolesForUserAsync(localUser.Id) : Array.Empty<string>();
 
             return Ok(new LoginResponse(
                 MessageConstants.Auth.OidcLoginSuccessful,
-                userId,
+                returnedUserId,
+                username,
                 email,
                 "oidc",
                 returnUrl ?? "/",
-                null));
+                roles));
         }
     }
 }
