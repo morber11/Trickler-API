@@ -342,6 +342,12 @@ namespace Trickler_API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("CurrentScore")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("current_score");
+
                     b.Property<bool>("IsPrivate")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
