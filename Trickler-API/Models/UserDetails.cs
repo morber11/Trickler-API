@@ -17,6 +17,9 @@ namespace Trickler_API.Models
         [Column("total_score", TypeName = "integer")]
         public int TotalScore { get; set; }
 
+        [Column("current_score", TypeName = "integer")]
+        public int CurrentScore { get; set; }
+
         [Column("is_private", TypeName = "boolean")]
         public bool IsPrivate { get; set; } = false;
     }

@@ -5,5 +5,6 @@ namespace Trickler_API.DTO
         string UserId,
         int TotalScore,
         bool IsPrivate,
-        string Username);
+        string Username,
+        int CurrentScore);
 }

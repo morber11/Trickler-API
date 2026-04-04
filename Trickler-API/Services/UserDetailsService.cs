@@ -33,13 +33,15 @@ namespace Trickler_API.Services
                     existing.UserId,
                     existing.TotalScore,
                     existing.IsPrivate,
-                    existingUserName);
+                    existingUserName,
+                    existing.CurrentScore);
             }
 
             var entity = new UserDetails
             {
                 UserId = userId,
                 TotalScore = 0,
+                CurrentScore = 0,
                 IsPrivate = false
             };
 
@@ -52,7 +54,8 @@ namespace Trickler_API.Services
                 entity.UserId,
                 entity.TotalScore,
                 entity.IsPrivate,
-                newUserName);
+                newUserName,
+                entity.CurrentScore);
         }
 
 
@@ -67,6 +70,7 @@ namespace Trickler_API.Services
 
             var set = _context.Set<UserDetails>();
             var existing = await set.SingleOrDefaultAsync(u => u.UserId == userId);
+
             if (existing is not null)
             {
                 var existingUserName = await GetUserNameForIdAsync(userId);
@@ -75,13 +79,15 @@ namespace Trickler_API.Services
                     existing.UserId,
                     existing.TotalScore,
                     existing.IsPrivate,
-                    existingUserName);
+                    existingUserName,
+                    existing.CurrentScore);
             }
 
             var entity = new UserDetails
             {
                 UserId = userId,
-                TotalScore = 0
+                TotalScore = 0,
+                CurrentScore = 0
             };
 
             await set.AddAsync(entity);
@@ -101,7 +107,8 @@ namespace Trickler_API.Services
                         reloaded.UserId,
                         reloaded.TotalScore,
                         reloaded.IsPrivate,
-                        reloadedUserName);
+                        reloadedUserName,
+                        reloaded.CurrentScore);
                 }
                 throw;
             }
@@ -112,7 +119,8 @@ namespace Trickler_API.Services
                 entity.UserId,
                 entity.TotalScore,
                 entity.IsPrivate,
-                createdUserName);
+                createdUserName,
+                entity.CurrentScore);
         }
 
         public async Task UpdateUserScoreAsync(string userId, int scoreToAdd)
@@ -129,6 +137,7 @@ namespace Trickler_API.Services
                 {
                     UserId = userId,
                     TotalScore = scoreToAdd,
+                    CurrentScore = scoreToAdd,
                     IsPrivate = false
                 };
                 await set.AddAsync(entity);
@@ -136,6 +145,7 @@ namespace Trickler_API.Services
             else
             {
                 existing.TotalScore += scoreToAdd;
+                existing.CurrentScore += scoreToAdd;
                 _context.Entry(existing).State = EntityState.Modified;
             }
         }
@@ -154,10 +164,12 @@ namespace Trickler_API.Services
                 if (local is not null)
                 {
                     local.TotalScore = reloaded.TotalScore + scoreToAdd;
+                    local.CurrentScore = reloaded.CurrentScore + scoreToAdd;
                 }
                 else
                 {
                     reloaded.TotalScore += scoreToAdd;
+                    reloaded.CurrentScore += scoreToAdd;
                     _context.UserDetails.Attach(reloaded);
                     _context.Entry(reloaded).State = EntityState.Modified;
                 }
@@ -168,6 +180,7 @@ namespace Trickler_API.Services
                 {
                     UserId = userId,
                     TotalScore = scoreToAdd,
+                    CurrentScore = scoreToAdd,
                     IsPrivate = false
                 };
                 _context.UserDetails.Add(newDetails);

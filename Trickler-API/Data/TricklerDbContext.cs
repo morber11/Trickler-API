@@ -95,6 +95,7 @@ namespace Trickler_API.Data
                 entity.Property(e => e.Id).HasColumnName("id");
                 entity.Property(e => e.UserId).HasColumnName("user_id");
                 entity.Property(e => e.TotalScore).HasColumnName("total_score").HasColumnType("integer").HasDefaultValue(0);
+                entity.Property(e => e.CurrentScore).HasColumnName("current_score").HasColumnType("integer").HasDefaultValue(0);
                 entity.Property(e => e.IsPrivate).HasColumnName("is_private").HasColumnType("boolean").HasDefaultValue(false);
 
                 entity.HasIndex(e => e.UserId).IsUnique();
