@@ -23,8 +23,8 @@ namespace Trickler_API.Controllers
         /// <summary>
         /// Register a new local user with username and password.
         /// </summary>
-        /// <param name="request">Registration details (email, password).</param>
-        /// <returns>200 on success, 400 for invalid input, 500 on server error.</returns>
+        /// <param name="request">Registration details (username, email, password).</param>
+        /// <returns>200 on success with login details, 400 for invalid input, 500 on server error.</returns>
         [HttpPost("register")]
         [AllowAnonymous]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
@@ -42,7 +42,25 @@ namespace Trickler_API.Controllers
                 return BadRequest(new ErrorResponse(MessageConstants.Account.RegistrationFailed, ErrorMessage));
             }
 
-            return Ok(new RegisterResponse(MessageConstants.Account.UserRegisteredSuccessfully, CreatedUser?.Id));
+            // Auto sign-in after successful registration 
+            // copy pasted from login - considering moving to a helper     
+            var signIn = await _accountService.ValidateAndSignInAsync(request.Username, request.Password);
+            if (!signIn.Succeeded)
+            {
+                _logger.LogWarning("Failed login attempt for email: {Email}", request.Email);
+                return Unauthorized(new MessageResponse(signIn.ErrorMessage ?? MessageConstants.Auth.InvalidCredentials));
+            }
+
+            _logger.LogInformation("User {Email} registered and signed in successfully", request.Email);
+
+            return Ok(new LoginResponse(
+                MessageConstants.Auth.LoginSuccessful,
+                signIn.User!.Id, // user will never be null here
+                signIn.User!.UserName,
+                signIn.User!.Email,
+                "local",
+                "/",
+                signIn.Roles));
         }
 
         /// <summary>
