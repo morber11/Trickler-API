@@ -36,7 +36,7 @@ namespace Trickler_API.Controllers
                 return BadRequest(new MessageResponse(MessageConstants.Account.EmailAndPasswordRequired));
             }
 
-            var (Succeeded, ErrorMessage, CreatedUser) = await _accountService.RegisterAsync(request.Username, request.Email, request.Password);
+            var (Succeeded, ErrorMessage, _) = await _accountService.RegisterAsync(request.Username, request.Email, request.Password);
             if (!Succeeded)
             {
                 return BadRequest(new ErrorResponse(MessageConstants.Account.RegistrationFailed, ErrorMessage));
