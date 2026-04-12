@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using Trickler_API.Constants;
 using Trickler_API.Models;
 
@@ -42,6 +43,24 @@ namespace Trickler_API.Data.Seeders
 
             await EnsureRoleAsync(roleManager, logger, adminRole);
             await EnsureRoleAsync(roleManager, logger, userRole);
+
+            var env = services.GetService<IHostEnvironment>();
+            if (env?.IsDevelopment() is true)
+            {
+                var userPassword = config["DEFAULT_USER_PASSWORD"] ?? "Defaultuserpassword1!";
+                var seededUser = await EnsureUserAsync(
+                    userManager,
+                    logger,
+                    "user",
+                    "user@trickler.com",
+                    userPassword,
+                    userRole);
+
+                if (seededUser is null)
+                {
+                    logger?.LogError("Dev user seeding failed.");
+                }
+            }
 
             var admin = await EnsureAdminUserAsync(
                 userManager,
@@ -120,6 +139,51 @@ namespace Trickler_API.Data.Seeders
             else
             {
                 logger?.LogInformation("Added admin user '{Email}' to role '{Role}'.", email, role);
+            }
+
+            return newUser;
+        }
+
+        private static async Task<ApplicationUser?> EnsureUserAsync(
+            UserManager<ApplicationUser> userManager,
+            ILogger? logger,
+            string username,
+            string email,
+            string password,
+            string role)
+        {
+            var user = await userManager.FindByNameAsync(username) ?? await userManager.FindByEmailAsync(email);
+
+            if (user is not null)
+            {
+                logger?.LogInformation("User already exists");
+                return user;
+            }
+
+            var newUser = new ApplicationUser
+            {
+                UserName = username,
+                Email = email,
+                EmailConfirmed = true
+            };
+
+            var createResult = await userManager.CreateAsync(newUser, password);
+            if (!createResult.Succeeded)
+            {
+                logger?.LogError("Failed to create user: {Errors}", string.Join(", ", createResult.Errors.Select(e => e.Description)));
+                return null;
+            }
+
+            logger?.LogInformation("Created user '{Email}'.", email);
+
+            var roleResult = await userManager.AddToRoleAsync(newUser, role);
+            if (!roleResult.Succeeded)
+            {
+                logger?.LogError("Failed to add user to role '{Role}': {Errors}", role, string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+            }
+            else
+            {
+                logger?.LogInformation("Added user '{Email}' to role '{Role}'.", email, role);
             }
 
             return newUser;

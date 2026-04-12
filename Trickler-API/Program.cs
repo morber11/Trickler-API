@@ -217,6 +217,11 @@ namespace Trickler_API
 
             await UserRolesSeeder.Initialize(app.Services);
 
+            if (app.Environment.IsDevelopment())
+            {
+                await TrickleSeeder.Initialize(app.Services);
+            }
+
             app.Run();
         }
     }
