@@ -39,7 +39,7 @@ namespace Trickler_API.Data.Seeders
                 Title = trickleTitle,
                 Text = "Trickle 1 Text. Answer is \"trickle 1 answer\"",
                 QuestionType = QuestionType.Single,
-                Score = 0,
+                Score = 100,
                 RewardText = string.Empty,
                 AttemptsPerTrickle = -1,
                 Availability = new Availability
