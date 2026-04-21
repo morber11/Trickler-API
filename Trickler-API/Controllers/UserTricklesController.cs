@@ -43,9 +43,9 @@ namespace Trickler_API.Controllers
             return Ok(dtos);
         }
 
-        [HttpGet("{trickleId}/has-solved/{userId}")]
+        [HttpGet("has-solved")]
         [Authorize(Roles = RoleConstants.AdminOrUser)]
-        public async Task<IActionResult> HasUserSolvedTrickle(int trickleId, string userId)
+        public async Task<IActionResult> HasUserSolvedTrickle([FromQuery] int trickleId, [FromQuery] string userId)
         {
             var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrWhiteSpace(currentUserId))
