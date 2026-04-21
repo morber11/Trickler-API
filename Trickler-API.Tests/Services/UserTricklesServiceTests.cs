@@ -104,5 +104,42 @@ namespace Trickler_API.Tests.Services
             Assert.Equal(t2.SolvedAt, recent[0].SolvedAt);
             Assert.Equal(t1.SolvedAt, recent[1].SolvedAt);
         }
+
+        [Fact]
+        public async Task GetSolvedByUserAsync_ReturnsOnlySolvedForGivenUser()
+        {
+            var t1 = new Trickle { Text = "T1", Score = 1 };
+            var t2 = new Trickle { Text = "T2", Score = 2 };
+            _context.Trickles.AddRange(t1, t2);
+            await _context.SaveChangesAsync();
+
+            var ut1 = new UserTrickle { UserId = "userA", TrickleId = t1.Id, IsSolved = true, SolvedAt = DateTime.UtcNow.AddMinutes(-5) };
+            var ut2 = new UserTrickle { UserId = "userA", TrickleId = t2.Id, IsSolved = false };
+            var ut3 = new UserTrickle { UserId = "userB", TrickleId = t1.Id, IsSolved = true };
+
+            _context.UserTrickles.AddRange(ut1, ut2, ut3);
+            await _context.SaveChangesAsync();
+
+            var results = await _service.GetSolvedByUserAsync("userA");
+            Assert.Single(results);
+            Assert.Equal(t1.Id, results[0].TrickleId);
+            Assert.True(results[0].IsSolved);
+        }
+
+        [Fact]
+        public async Task HasUserSolvedTrickle_ReturnsTrueWhenSolvedAndFalseWhenNot()
+        {
+            var t1 = new Trickle { Text = "Q1", Score = 1 };
+            var t2 = new Trickle { Text = "Q2", Score = 1 };
+            _context.Trickles.AddRange(t1, t2);
+            await _context.SaveChangesAsync();
+
+            var ut = new UserTrickle { UserId = "uY", TrickleId = t1.Id, IsSolved = true };
+            _context.UserTrickles.Add(ut);
+            await _context.SaveChangesAsync();
+
+            Assert.True(await _service.HasUserSolvedTrickleAsync(t1.Id, "uY"));
+            Assert.False(await _service.HasUserSolvedTrickleAsync(t2.Id, "uY"));
+        }
     }
 }

@@ -79,5 +79,16 @@ namespace Trickler_API.Services
 
         public async Task<List<UserTrickle>> GetRecentSolvedAsync(string userId, int take = 5)
             => await _context.UserTrickles.Where(ut => ut.UserId == userId && ut.IsSolved).OrderByDescending(ut => ut.SolvedAt).Take(take).ToListAsync();
+
+        public async Task<List<UserTrickle>> GetSolvedByUserAsync(string userId, int take = 30)
+            => await _context.UserTrickles
+                .Where(ut => ut.UserId == userId && ut.IsSolved)
+                .Include(ut => ut.Trickle)
+                .OrderByDescending(ut => ut.SolvedAt)
+                .Take(take)
+                .ToListAsync();
+
+        public async Task<bool> HasUserSolvedTrickleAsync(int trickleId, string userId)
+            => await _context.UserTrickles.AnyAsync(ut => ut.UserId == userId && ut.TrickleId == trickleId && ut.IsSolved);
     }
 }

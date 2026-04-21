@@ -30,6 +30,14 @@ namespace Trickler_API.DTO
         int AttemptsPerTrickle
     );
 
+    public record SolvedTrickleDto(
+        int Id,
+        string Title,
+        DateTime? SolvedAt,
+        string? RewardCode,
+        int CurrentScore
+    );
+
     public record CreateTrickleRequest(
         string Title,
         string Text,

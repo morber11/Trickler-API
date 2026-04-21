@@ -1,10 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Trickler_API.Data;
 using Trickler_API.Models;
 
 namespace Trickler_API.Data.Seeders
