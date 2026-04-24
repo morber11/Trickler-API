@@ -130,13 +130,32 @@ namespace Trickler_API
                     limiterOptions.QueueLimit = 5;
                 });
                 options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
-                    RateLimitPartition.GetFixedWindowLimiter(
+                {
+                    // janky work around so we have a separate rate limiter for logout
+                    // TODO: fix this properly
+                    var requestPath = context.Request.Path.Value?.ToLowerInvariant() ?? string.Empty;
+                    if (requestPath == "/api/v1/account/logout")
+                    {
+                        return RateLimitPartition.GetTokenBucketLimiter(
+                            partitionKey: "logout",
+                            factory: partition => new TokenBucketRateLimiterOptions
+                            {
+                                TokenLimit = 20,
+                                TokensPerPeriod = 10,
+                                ReplenishmentPeriod = TimeSpan.FromMinutes(1),
+                                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                                QueueLimit = 0
+                            });
+                    }
+
+                    return RateLimitPartition.GetFixedWindowLimiter(
                         partitionKey: context.User.Identity?.Name ?? context.Request.Headers.Host.ToString(),
                         factory: partition => new FixedWindowRateLimiterOptions
                         {
                             PermitLimit = 30,
                             Window = TimeSpan.FromMinutes(1)
-                        }));
+                        });
+                });
 
                 options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
             });
