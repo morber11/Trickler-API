@@ -74,7 +74,7 @@ namespace Trickler_API.Services
             }
             else if (!isCorrect)
             {
-                userTrickle.CurrentScore = _scoringService.ApplyWrongAttempt(userTrickle.CurrentScore);
+                userTrickle.CurrentScore = _scoringService.ApplyWrongAttempt(userTrickle.CurrentScore, trickle.Score);
                 changedCurrentScore = true;
             }
 

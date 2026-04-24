@@ -61,8 +61,8 @@ namespace Trickler_API.Services
                         userTrickle.RewardCode ??= reloaded.RewardCode;
                         if (changedCurrentScore)
                         {
-                            var baseScore = reloaded.CurrentScore == 0 ? trickleBaseScore : reloaded.CurrentScore;
-                            userTrickle.CurrentScore = _scoringService.ApplyWrongAttempt(baseScore);
+                            var scoreToReduce = reloaded.CurrentScore == 0 ? trickleBaseScore : reloaded.CurrentScore;
+                            userTrickle.CurrentScore = _scoringService.ApplyWrongAttempt(scoreToReduce, trickleBaseScore);
                         }
                     }
 
