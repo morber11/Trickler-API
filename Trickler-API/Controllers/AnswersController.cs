@@ -41,7 +41,8 @@ namespace Trickler_API.Controllers
                 result.IsSolved,
                 result.SolvedAt,
                 result.RewardCode,
-                result.AttemptsLeft));
+                result.AttemptsLeft,
+                result.CurrentScore));
         }
     }
 }

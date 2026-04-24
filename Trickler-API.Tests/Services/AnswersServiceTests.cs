@@ -32,7 +32,7 @@ namespace Trickler_API.Tests.Services
         [Fact]
         public async Task SubmitAnswer_VerifyInline_MatchingAnswer_ReturnsSolved()
         {
-            var trickle = new Trickle { Text = "Question" };
+            var trickle = new Trickle { Text = "Question", Score = 10 };
             _context.Trickles.Add(trickle);
             await _context.SaveChangesAsync();
 
@@ -44,12 +44,13 @@ namespace Trickler_API.Tests.Services
             var result = await _service.SubmitAnswerAsync(trickle.Id, "Yes", userId);
 
             Assert.True(result.IsSolved);
+            Assert.Equal(trickle.Score, result.CurrentScore);
         }
 
         [Fact]
         public async Task SubmitAnswer_Correct_GeneratesRewardAndMarksSolved()
         {
-            var trickle = new Trickle { Text = "Question" };
+            var trickle = new Trickle { Text = "Question", Score = 10 };
             _context.Trickles.Add(trickle);
             await _context.SaveChangesAsync();
 
@@ -61,6 +62,7 @@ namespace Trickler_API.Tests.Services
 
             Assert.True(result.IsSolved);
             Assert.False(string.IsNullOrWhiteSpace(result.RewardCode));
+            Assert.Equal(trickle.Score, result.CurrentScore);
 
             var ut = await _context.UserTrickles.SingleAsync(u => u.UserId == userId && u.TrickleId == trickle.Id);
             Assert.True(ut.IsSolved);
@@ -70,12 +72,13 @@ namespace Trickler_API.Tests.Services
         [Fact]
         public async Task SubmitAnswer_Incorrect_IncrementsAttemptCount()
         {
-            var trickle = new Trickle { Text = "Question" };
+            var trickle = new Trickle { Text = "Question", Score = 100 };
             _context.Trickles.Add(trickle);
             await _context.SaveChangesAsync();
 
             var userId = "user-2";
-            await _service.SubmitAnswerAsync(trickle.Id, "no", userId);
+            var first = await _service.SubmitAnswerAsync(trickle.Id, "no", userId);
+            Assert.Equal(90, first.CurrentScore);
             await _service.SubmitAnswerAsync(trickle.Id, "no", userId);
 
             var ut = await _context.UserTrickles.SingleAsync(u => u.UserId == userId && u.TrickleId == trickle.Id);
@@ -104,7 +107,7 @@ namespace Trickler_API.Tests.Services
         [Fact]
         public async Task SubmitAnswer_SecondCorrectReturnsSameReward()
         {
-            var trickle = new Trickle { Text = "Question" };
+            var trickle = new Trickle { Text = "Question", Score = 10 };
             _context.Trickles.Add(trickle);
             await _context.SaveChangesAsync();
 
@@ -116,6 +119,8 @@ namespace Trickler_API.Tests.Services
             var second = await _service.SubmitAnswerAsync(trickle.Id, "yes", userId);
 
             Assert.Equal(first.RewardCode, second.RewardCode);
+            Assert.Equal(trickle.Score, first.CurrentScore);
+            Assert.Equal(trickle.Score, second.CurrentScore);
             var ut = await _context.UserTrickles.SingleAsync(u => u.UserId == userId && u.TrickleId == trickle.Id);
             Assert.True(ut.IsSolved);
         }

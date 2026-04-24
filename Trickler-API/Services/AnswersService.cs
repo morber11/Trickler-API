@@ -21,11 +21,11 @@ namespace Trickler_API.Services
         private readonly UserDetailsService _userDetailsService = userDetailsService;
         private readonly UserTricklesService _userTricklesService = userTricklesService;
 
-        public record SubmitAnswerResult(bool IsSolved, DateTime? SolvedAt, string? RewardCode, int AttemptsLeft);
+        public record SubmitAnswerResult(bool IsSolved, DateTime? SolvedAt, string? RewardCode, int AttemptsLeft, int CurrentScore);
 
         public async Task<SubmitAnswerResult> SubmitAnswerAsync(int trickleId, string answer, string userId)
         {
-            if (string.IsNullOrWhiteSpace(answer)) return new SubmitAnswerResult(false, null, null, 0);
+            if (string.IsNullOrWhiteSpace(answer)) return new SubmitAnswerResult(false, null, null, 0, 0);
 
             var trickle = await LoadTrickleAsync(trickleId);
 
@@ -36,7 +36,7 @@ namespace Trickler_API.Services
 
             if (!IsTrickleAvailable(trickle, currentDateOnly, currentDayOfWeek))
             {
-                return new SubmitAnswerResult(false, null, null, 0);
+                return new SubmitAnswerResult(false, null, null, 0, 0);
             }
 
             var (isUnlimited, attemptLimit) = ResolveAttemptLimit(trickle);
@@ -90,7 +90,8 @@ namespace Trickler_API.Services
                 userTrickle.IsSolved,
                 userTrickle.SolvedAt,
                 userTrickle.RewardCode,
-                attemptsLeft);
+                attemptsLeft,
+                userTrickle.CurrentScore);
         }
 
         private static string NormalizeAnswer(string answer) => answer.Trim().ToLowerInvariant();
@@ -146,13 +147,14 @@ namespace Trickler_API.Services
                     userTrickle.IsSolved,
                     userTrickle.SolvedAt,
                     userTrickle.RewardCode,
-                    attemptsLeftCurrent);
+                    attemptsLeftCurrent,
+                    userTrickle.CurrentScore);
                 return true;
             }
 
             if (!isUnlimited && userTrickle.AttemptsToday >= attemptLimit)
             {
-                result = new SubmitAnswerResult(false, null, userTrickle.RewardCode, 0);
+                result = new SubmitAnswerResult(false, null, userTrickle.RewardCode, 0, userTrickle.CurrentScore);
                 return true;
             }
 
@@ -177,7 +179,7 @@ namespace Trickler_API.Services
             // this is disgusting but it's simple
             if (trickle.Answers is not null && trickle.Answers.Count != 0)
             {
-                answers = trickle.Answers.ToList();
+                answers = [.. trickle.Answers];
             }
             else
             {
