@@ -12,9 +12,10 @@ namespace Trickler_API.Controllers
     [Route("api/v1/[controller]")]
     [Authorize]
     [EnableRateLimiting("token")]
-    public class AnswersController(AnswersService answersService) : ControllerBase
+    public class AnswersController(AnswersService answersService, TricklerService tricklerService) : ControllerBase
     {
         private readonly AnswersService _answersService = answersService;
+        private readonly TricklerService _tricklerService = tricklerService;
 
 
         /// <summary>
@@ -32,17 +33,33 @@ namespace Trickler_API.Controllers
 
             var result = await _answersService.SubmitAnswerAsync(request.TrickleId, request.Answer, userId);
 
-            if (result.AttemptsLeft <= 0 && !result.IsSolved)
+            if (result.Result == SubmitAttemptResultType.Locked)
             {
                 return StatusCode(StatusCodes.Status429TooManyRequests, new MessageResponse(MessageConstants.Answers.AttemptLimitReached));
             }
 
-            return Ok(new SubmitAnswerResponse(
-                result.IsSolved,
-                result.SolvedAt,
-                result.RewardCode,
-                result.AttemptsLeft,
-                result.CurrentScore));
+            var progress = await _tricklerService.GetAvailableTricklesForUserAsync(userId);
+            return Ok(progress with { Result = result.Result.ToString().ToLowerInvariant() });
+        }
+
+        [HttpPost("/api/v1/trickler/{id}/attempt")]
+        [Authorize(Roles = RoleConstants.AdminOrUser)]
+        public async Task<IActionResult> SubmitAttempt(int id, [FromBody] SubmitAttemptRequest request)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return Unauthorized(new MessageResponse(MessageConstants.Auth.UserNotAuthenticated));
+            }
+
+            var result = await _answersService.SubmitAnswerAsync(id, request.Answer, userId);
+            if (result.Result == SubmitAttemptResultType.Locked)
+            {
+                return StatusCode(StatusCodes.Status429TooManyRequests, new MessageResponse(MessageConstants.Answers.AttemptLimitReached));
+            }
+
+            var progress = await _tricklerService.GetAvailableTricklesForUserAsync(userId);
+            return Ok(progress with { Result = result.Result.ToString().ToLowerInvariant() });
         }
     }
 }

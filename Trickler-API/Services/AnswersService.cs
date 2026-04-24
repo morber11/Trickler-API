@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Trickler_API.Data;
+using Trickler_API.DTO;
 using Trickler_API.Exceptions;
 using Trickler_API.Models;
 
@@ -21,11 +22,14 @@ namespace Trickler_API.Services
         private readonly UserDetailsService _userDetailsService = userDetailsService;
         private readonly UserTricklesService _userTricklesService = userTricklesService;
 
-        public record SubmitAnswerResult(bool IsSolved, DateTime? SolvedAt, string? RewardCode, int AttemptsLeft, int CurrentScore);
+        public record SubmitAnswerResult(SubmitAttemptResultType Result, bool IsSolved, DateTime? SolvedAt, string? RewardCode, int AttemptsLeft, int CurrentScore);
+
+        public (bool isUnlimited, int attemptLimit) GetAttemptLimit(Trickle trickle)
+            => ResolveAttemptLimit(trickle);
 
         public async Task<SubmitAnswerResult> SubmitAnswerAsync(int trickleId, string answer, string userId)
         {
-            if (string.IsNullOrWhiteSpace(answer)) return new SubmitAnswerResult(false, null, null, 0, 0);
+            if (string.IsNullOrWhiteSpace(answer)) return new SubmitAnswerResult(SubmitAttemptResultType.Incorrect, false, null, null, 0, 0);
 
             var trickle = await LoadTrickleAsync(trickleId);
 
@@ -36,7 +40,7 @@ namespace Trickler_API.Services
 
             if (!IsTrickleAvailable(trickle, currentDateOnly, currentDayOfWeek))
             {
-                return new SubmitAnswerResult(false, null, null, 0, 0);
+                return new SubmitAnswerResult(SubmitAttemptResultType.Locked, false, null, null, 0, 0);
             }
 
             var (isUnlimited, attemptLimit) = ResolveAttemptLimit(trickle);
@@ -87,6 +91,7 @@ namespace Trickler_API.Services
 
             var attemptsLeft = ComputeAttemptsLeft(isUnlimited, attemptLimit, userTrickle);
             return new SubmitAnswerResult(
+                isCorrect ? SubmitAttemptResultType.Correct : SubmitAttemptResultType.Incorrect,
                 userTrickle.IsSolved,
                 userTrickle.SolvedAt,
                 userTrickle.RewardCode,
@@ -144,6 +149,7 @@ namespace Trickler_API.Services
             {
                 var attemptsLeftCurrent = isUnlimited ? int.MaxValue : Math.Max(0, attemptLimit - userTrickle.AttemptsToday);
                 result = new SubmitAnswerResult(
+                    SubmitAttemptResultType.AlreadySolved,
                     userTrickle.IsSolved,
                     userTrickle.SolvedAt,
                     userTrickle.RewardCode,
@@ -154,7 +160,7 @@ namespace Trickler_API.Services
 
             if (!isUnlimited && userTrickle.AttemptsToday >= attemptLimit)
             {
-                result = new SubmitAnswerResult(false, null, userTrickle.RewardCode, 0, userTrickle.CurrentScore);
+                result = new SubmitAnswerResult(SubmitAttemptResultType.Locked, false, null, userTrickle.RewardCode, 0, userTrickle.CurrentScore);
                 return true;
             }
 

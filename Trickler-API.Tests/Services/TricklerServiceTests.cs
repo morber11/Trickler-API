@@ -440,6 +440,35 @@ namespace Trickler_API.Tests.Services
         }
 
         [Fact]
+        public async Task GetAvailableTricklesForUserAsync_ReturnsHydratedUserState()
+        {
+            var trickle = new Trickle { Title = "Question", Text = "Test", Score = 100, AttemptsPerTrickle = 5 };
+            _context.Trickles.Add(trickle);
+            await _context.SaveChangesAsync();
+
+            _context.UserTrickles.Add(new UserTrickle
+            {
+                UserId = "user-1",
+                TrickleId = trickle.Id,
+                AttemptsToday = 1,
+                AttemptsDate = DateTime.UtcNow.Date,
+                AttemptCountTotal = 1,
+                CurrentScore = 90,
+                IsSolved = false
+            });
+            await _context.SaveChangesAsync();
+
+            var result = await _service.GetAvailableTricklesForUserAsync("user-1");
+
+            Assert.Equal("user-1", result.UserId);
+            var item = Assert.Single(result.Trickles);
+            Assert.True(item.HasAttempted);
+            Assert.Equal(90, item.CurrentScore);
+            Assert.Equal(4, item.AttemptsLeft);
+            Assert.False(item.IsSolved);
+        }
+
+        [Fact]
         public async Task GetAvailableTricklesAsync_FiltersDateRangeAvailability()
         {
             var today = DateOnly.FromDateTime(DateTime.UtcNow);

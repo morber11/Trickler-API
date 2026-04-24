@@ -30,6 +30,26 @@ namespace Trickler_API.DTO
         int AttemptsPerTrickle
     );
 
+    public record HydratedTrickleDto(
+        int Id,
+        string Title,
+        string Text,
+        int Score,
+        string RewardText,
+        AvailabilityDto? Availability,
+        int AttemptsPerTrickle,
+        bool HasAttempted,
+        int AttemptsLeft,
+        bool IsSolved,
+        int CurrentScore
+    );
+
+    public record UserTricklesProgressDto(
+        string UserId,
+        IEnumerable<HydratedTrickleDto> Trickles,
+        string? Result = null
+    );
+
     public record SolvedTrickleDto(
         int Id,
         string Title,

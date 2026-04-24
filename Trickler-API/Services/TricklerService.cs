@@ -44,6 +44,58 @@ namespace Trickler_API.Services
             ))];
         }
 
+        public async Task<UserTricklesProgressDto> GetAvailableTricklesForUserAsync(string userId)
+        {
+            _logger.LogInformation("Getting available trickles for user {UserId}", userId);
+
+            var utcNow = _timeProvider.GetUtcNow().UtcDateTime;
+            var currentDate = DateOnly.FromDateTime(utcNow);
+            var currentDayOfWeek = utcNow.DayOfWeek.ToString();
+
+            var allTrickles = await _context.Trickles
+                .Include(t => t.Availability)
+                .ToListAsync();
+
+            var availableTrickles = allTrickles
+                .Where(t => _availabilityService.IsAvailable(t.Availability, currentDate, currentDayOfWeek))
+                .ToList();
+
+            var trickleIds = availableTrickles.Select(t => t.Id).ToList();
+            var userTrickles = await _context.UserTrickles
+                .Where(ut => ut.UserId == userId && trickleIds.Contains(ut.TrickleId))
+                .ToListAsync();
+
+            var userTricklesById = userTrickles.ToDictionary(ut => ut.TrickleId);
+
+            var hydrated = availableTrickles.Select(trickle =>
+            {
+                userTricklesById.TryGetValue(trickle.Id, out var userTrickle);
+                var (isUnlimited, attemptLimit) = _answersService.GetAttemptLimit(trickle);
+                var attemptsToday = userTrickle is not null && DateOnly.FromDateTime(userTrickle.AttemptsDate.Date) == currentDate
+                    ? userTrickle.AttemptsToday
+                    : 0;
+                var attemptsLeft = isUnlimited
+                    ? int.MaxValue
+                    : Math.Max(0, attemptLimit - attemptsToday);
+
+                return new HydratedTrickleDto(
+                    trickle.Id,
+                    trickle.Title,
+                    trickle.Text,
+                    trickle.Score,
+                    trickle.RewardText,
+                    trickle.Availability is not null ? MapAvailabilityToDto(trickle.Availability) : null,
+                    trickle.AttemptsPerTrickle,
+                    userTrickle?.AttemptCountTotal > 0,
+                    attemptsLeft,
+                    userTrickle?.IsSolved ?? false,
+                    userTrickle?.CurrentScore ?? trickle.Score
+                );
+            }).ToList();
+
+            return new UserTricklesProgressDto(userId, hydrated);
+        }
+
         public async Task<TrickleWithAnswersDto> CreateTrickleAsync(
             string title,
             string text,
