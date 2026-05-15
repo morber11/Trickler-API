@@ -20,9 +20,9 @@ namespace Trickler_API.Controllers
         private readonly TricklerService _tricklerService = tricklerService;
 
         /// <summary>
-        /// Returns all trickles that are currently available based on their availability settings.
+        /// Returns the currently available daily trickle based on availability settings.
         /// </summary>
-        /// <returns>200 with list of available trickles (without answers).</returns>
+        /// <returns>200 with the available trickle (without answers).</returns>
         [HttpGet("available")]
         [Authorize(Roles = RoleConstants.AdminOrUser)]
         public async Task<IActionResult> GetAvailable()
@@ -33,7 +33,7 @@ namespace Trickler_API.Controllers
                 return Unauthorized(new MessageResponse(MessageConstants.Auth.UserNotAuthenticated));
             }
 
-            var progress = await _tricklerService.GetAvailableTricklesForUserAsync(userId);
+            var progress = await _tricklerService.GetAvailableTrickleForUserAsync(userId);
             return Ok(progress);
         }
 

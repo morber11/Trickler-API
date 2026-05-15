@@ -38,7 +38,7 @@ namespace Trickler_API.Controllers
                 return StatusCode(StatusCodes.Status429TooManyRequests, new MessageResponse(MessageConstants.Answers.AttemptLimitReached));
             }
 
-            var progress = await _tricklerService.GetAvailableTricklesForUserAsync(userId);
+            var progress = await _tricklerService.GetAvailableTrickleForUserAsync(userId);
             return Ok(progress with { Result = result.Result.ToString().ToLowerInvariant() });
         }
 
@@ -58,7 +58,7 @@ namespace Trickler_API.Controllers
                 return StatusCode(StatusCodes.Status429TooManyRequests, new MessageResponse(MessageConstants.Answers.AttemptLimitReached));
             }
 
-            var progress = await _tricklerService.GetAvailableTricklesForUserAsync(userId);
+            var progress = await _tricklerService.GetAvailableTrickleForUserAsync(userId);
             return Ok(progress with { Result = result.Result.ToString().ToLowerInvariant() });
         }
     }

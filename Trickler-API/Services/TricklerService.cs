@@ -27,14 +27,9 @@ namespace Trickler_API.Services
             var currentDate = DateOnly.FromDateTime(utcNow);
             var currentDayOfWeek = utcNow.DayOfWeek.ToString();
 
-            var allTrickles = await _context.Trickles
-                .Include(t => t.Availability)
-                .ToListAsync();
+            var availableTrickles = await GetAvailableTrickleEntitiesAsync(currentDate, currentDayOfWeek);
 
-            return [.. allTrickles.Where(t =>
-            {
-                return _availabilityService.IsAvailable(t.Availability, currentDate, currentDayOfWeek);
-            }).Select(t => new AvailableTrickleDto(
+            return [.. availableTrickles.Select(t => new AvailableTrickleDto(
                 t.Id,
                 t.Title,
                 t.Text,
@@ -44,56 +39,25 @@ namespace Trickler_API.Services
             ))];
         }
 
-        public async Task<UserTricklesProgressDto> GetAvailableTricklesForUserAsync(string userId)
+        public async Task<UserTrickleProgressDto> GetAvailableTrickleForUserAsync(string userId)
         {
-            _logger.LogInformation("Getting available trickles for user {UserId}", userId);
+            _logger.LogInformation("Getting available trickle for user {UserId}", userId);
 
             var utcNow = _timeProvider.GetUtcNow().UtcDateTime;
             var currentDate = DateOnly.FromDateTime(utcNow);
             var currentDayOfWeek = utcNow.DayOfWeek.ToString();
 
-            var allTrickles = await _context.Trickles
-                .Include(t => t.Availability)
-                .ToListAsync();
-
-            var availableTrickles = allTrickles
-                .Where(t => _availabilityService.IsAvailable(t.Availability, currentDate, currentDayOfWeek))
-                .ToList();
-
-            var trickleIds = availableTrickles.Select(t => t.Id).ToList();
-            var userTrickles = await _context.UserTrickles
-                .Where(ut => ut.UserId == userId && trickleIds.Contains(ut.TrickleId))
-                .ToListAsync();
-
-            var userTricklesById = userTrickles.ToDictionary(ut => ut.TrickleId);
-
-            var hydrated = availableTrickles.Select(trickle =>
+            var availableTrickles = await GetAvailableTrickleEntitiesAsync(currentDate, currentDayOfWeek);
+            if (availableTrickles.Count == 0)
             {
-                userTricklesById.TryGetValue(trickle.Id, out var userTrickle);
-                var (isUnlimited, attemptLimit) = _answersService.GetAttemptLimit(trickle);
-                var attemptsToday = userTrickle is not null && DateOnly.FromDateTime(userTrickle.AttemptsDate.Date) == currentDate
-                    ? userTrickle.AttemptsToday
-                    : 0;
-                var attemptsLeft = isUnlimited
-                    ? int.MaxValue
-                    : Math.Max(0, attemptLimit - attemptsToday);
+                return new UserTrickleProgressDto(userId, null);
+            }
 
-                return new HydratedTrickleDto(
-                    trickle.Id,
-                    trickle.Title,
-                    trickle.Text,
-                    trickle.Score,
-                    trickle.RewardText,
-                    trickle.Availability is not null ? MapAvailabilityToDto(trickle.Availability) : null,
-                    trickle.AttemptsPerTrickle,
-                    userTrickle?.AttemptCountTotal > 0,
-                    attemptsLeft,
-                    userTrickle?.IsSolved ?? false,
-                    userTrickle?.CurrentScore ?? trickle.Score
-                );
-            }).ToList();
+            var dailyTrickle = SelectDailyTrickle(availableTrickles, currentDate);
+            var userTrickle = await _context.UserTrickles
+                .FirstOrDefaultAsync(ut => ut.UserId == userId && ut.TrickleId == dailyTrickle.Id);
 
-            return new UserTricklesProgressDto(userId, hydrated);
+            return new UserTrickleProgressDto(userId, HydrateTrickle(dailyTrickle, userTrickle, currentDate));
         }
 
         public async Task<TrickleWithAnswersDto> CreateTrickleAsync(
@@ -306,6 +270,49 @@ namespace Trickler_API.Services
                 await transaction.RollbackAsync();
                 throw;
             }
+        }
+
+        private async Task<List<Trickle>> GetAvailableTrickleEntitiesAsync(DateOnly currentDate, string currentDayOfWeek)
+        {
+            var allTrickles = await _context.Trickles
+                .Include(t => t.Availability)
+                .ToListAsync();
+
+            return [.. allTrickles.Where(t => _availabilityService.IsAvailable(t.Availability, currentDate, currentDayOfWeek))];
+        }
+
+        private HydratedTrickleDto HydrateTrickle(Trickle trickle, UserTrickle? userTrickle, DateOnly currentDate)
+        {
+            var (isUnlimited, attemptLimit) = _answersService.GetAttemptLimit(trickle);
+            var attemptsToday = userTrickle is not null && DateOnly.FromDateTime(userTrickle.AttemptsDate.Date) == currentDate
+                ? userTrickle.AttemptsToday
+                : 0;
+            var attemptsLeft = isUnlimited
+                ? int.MaxValue
+                : Math.Max(0, attemptLimit - attemptsToday);
+
+            return new HydratedTrickleDto(
+                trickle.Id,
+                trickle.Title,
+                trickle.Text,
+                trickle.Score,
+                trickle.RewardText,
+                trickle.Availability is not null ? MapAvailabilityToDto(trickle.Availability) : null,
+                trickle.AttemptsPerTrickle,
+                userTrickle?.AttemptCountTotal > 0,
+                attemptsLeft,
+                userTrickle?.IsSolved ?? false,
+                userTrickle?.CurrentScore ?? trickle.Score
+            );
+        }
+
+        private static Trickle SelectDailyTrickle(List<Trickle> availableTrickles, DateOnly currentDate)
+        {
+            var orderedTrickles = availableTrickles
+                .OrderBy(trickle => trickle.Id)
+                .ToList();
+
+            return orderedTrickles[currentDate.DayNumber % orderedTrickles.Count];
         }
 
         // util functions for mapping only

@@ -44,9 +44,9 @@ namespace Trickler_API.DTO
         int CurrentScore
     );
 
-    public record UserTricklesProgressDto(
+    public record UserTrickleProgressDto(
         string UserId,
-        IEnumerable<HydratedTrickleDto> Trickles,
+        HydratedTrickleDto? Trickle,
         string? Result = null
     );
 

@@ -46,6 +46,11 @@ namespace Trickler_API.Tests.Services
             GC.SuppressFinalize(this);
         }
 
+        private void SetUtcNow(DateTimeOffset dateTimeOffset)
+        {
+            _timeProviderMock.Setup(tp => tp.GetUtcNow()).Returns(dateTimeOffset);
+        }
+
 
         [Fact]
         public async Task GetTrickleByIdAsync_ExistingId_ShouldReturnTrickle()
@@ -440,8 +445,11 @@ namespace Trickler_API.Tests.Services
         }
 
         [Fact]
-        public async Task GetAvailableTricklesForUserAsync_ReturnsHydratedUserState()
+        public async Task GetAvailableTrickleForUserAsync_ReturnsHydratedUserState()
         {
+            var currentUtc = new DateTimeOffset(2026, 5, 15, 0, 0, 0, TimeSpan.Zero);
+            SetUtcNow(currentUtc);
+
             var trickle = new Trickle { Title = "Question", Text = "Test", Score = 100, AttemptsPerTrickle = 5 };
             _context.Trickles.Add(trickle);
             await _context.SaveChangesAsync();
@@ -451,21 +459,81 @@ namespace Trickler_API.Tests.Services
                 UserId = "user-1",
                 TrickleId = trickle.Id,
                 AttemptsToday = 1,
-                AttemptsDate = DateTime.UtcNow.Date,
+                AttemptsDate = currentUtc.UtcDateTime.Date,
                 AttemptCountTotal = 1,
                 CurrentScore = 90,
                 IsSolved = false
             });
             await _context.SaveChangesAsync();
 
-            var result = await _service.GetAvailableTricklesForUserAsync("user-1");
+            var result = await _service.GetAvailableTrickleForUserAsync("user-1");
 
             Assert.Equal("user-1", result.UserId);
-            var item = Assert.Single(result.Trickles);
+            var item = Assert.IsType<HydratedTrickleDto>(result.Trickle);
             Assert.True(item.HasAttempted);
             Assert.Equal(90, item.CurrentScore);
             Assert.Equal(4, item.AttemptsLeft);
             Assert.False(item.IsSolved);
+        }
+
+        [Fact]
+        public async Task GetAvailableTrickleForUserAsync_ReturnsNullWhenNoTricklesAreAvailable()
+        {
+            SetUtcNow(new DateTimeOffset(2026, 5, 15, 0, 0, 0, TimeSpan.Zero));
+
+            var availability = new Availability
+            {
+                Type = AvailabilityType.SpecificDates,
+                Dates = [new DateOnly(2026, 5, 16)]
+            };
+            _context.Availabilities.Add(availability);
+            await _context.SaveChangesAsync();
+
+            _context.Trickles.Add(new Trickle { Title = "Question", Text = "Test", AvailabilityId = availability.Id });
+            await _context.SaveChangesAsync();
+
+            var result = await _service.GetAvailableTrickleForUserAsync("user-1");
+
+            Assert.Equal("user-1", result.UserId);
+            Assert.Null(result.Trickle);
+        }
+
+        [Fact]
+        public async Task GetAvailableTrickleForUserAsync_ReturnsSameDailyTrickleForSameDay()
+        {
+            SetUtcNow(new DateTimeOffset(2026, 5, 15, 0, 0, 0, TimeSpan.Zero));
+
+            _context.Trickles.AddRange(
+                new Trickle { Title = "Q1", Text = "First" },
+                new Trickle { Title = "Q2", Text = "Second" },
+                new Trickle { Title = "Q3", Text = "Third" });
+            await _context.SaveChangesAsync();
+
+            var first = await _service.GetAvailableTrickleForUserAsync("user-1");
+            var second = await _service.GetAvailableTrickleForUserAsync("user-1");
+
+            var firstTrickle = Assert.IsType<HydratedTrickleDto>(first.Trickle);
+            var secondTrickle = Assert.IsType<HydratedTrickleDto>(second.Trickle);
+            Assert.Equal(firstTrickle.Id, secondTrickle.Id);
+        }
+
+        [Fact]
+        public async Task GetAvailableTrickleForUserAsync_ChangesDailyTrickleWhenDateChanges()
+        {
+            _context.Trickles.AddRange(
+                new Trickle { Title = "Q1", Text = "First" },
+                new Trickle { Title = "Q2", Text = "Second" });
+            await _context.SaveChangesAsync();
+
+            SetUtcNow(new DateTimeOffset(2026, 5, 15, 0, 0, 0, TimeSpan.Zero));
+            var first = await _service.GetAvailableTrickleForUserAsync("user-1");
+
+            SetUtcNow(new DateTimeOffset(2026, 5, 16, 0, 0, 0, TimeSpan.Zero));
+            var second = await _service.GetAvailableTrickleForUserAsync("user-1");
+
+            var firstTrickle = Assert.IsType<HydratedTrickleDto>(first.Trickle);
+            var secondTrickle = Assert.IsType<HydratedTrickleDto>(second.Trickle);
+            Assert.NotEqual(firstTrickle.Id, secondTrickle.Id);
         }
 
         [Fact]
