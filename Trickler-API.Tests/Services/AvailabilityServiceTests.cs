@@ -129,33 +129,17 @@ namespace Trickler_API.Tests.Services
             Assert.False(result);
         }
 
-        [Fact]
-        public void IsAvailable_Weekly_CaseInsensitiveMatch_ReturnsTrue()
+        [Theory]
+        [InlineData("sunday", "SUNDAY")]
+        [InlineData("Sunday", " Sunday ")]
+        public void IsAvailable_Weekly_NormalizesDayNames_ReturnsTrue(string currentDayOfWeek, string availableDayOfWeek)
         {
             var currentDate = new DateOnly(2026, 2, 9); // Sunday
-            var currentDayOfWeek = "sunday"; // lowercase
 
             var availability = new Availability
             {
                 Type = AvailabilityType.Weekly,
-                DaysOfWeek = ["SUNDAY"] // uppercase
-            };
-
-            var result = _service.IsAvailable(availability, currentDate, currentDayOfWeek);
-
-            Assert.True(result);
-        }
-
-        [Fact]
-        public void IsAvailable_Weekly_WithWhitespace_ReturnsTrue()
-        {
-            var currentDate = new DateOnly(2026, 2, 9); // Sunday
-            var currentDayOfWeek = "Sunday";
-
-            var availability = new Availability
-            {
-                Type = AvailabilityType.Weekly,
-                DaysOfWeek = [" Sunday ", " Monday "] // with whitespace
+                DaysOfWeek = [availableDayOfWeek]
             };
 
             var result = _service.IsAvailable(availability, currentDate, currentDayOfWeek);
