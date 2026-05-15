@@ -19,26 +19,6 @@ namespace Trickler_API.Services
         private readonly AvailabilityService _availabilityService = availabilityService;
         private readonly AnswersService _answersService = answersService;
 
-        public async Task<List<AvailableTrickleDto>> GetAvailableTricklesAsync()
-        {
-            _logger.LogInformation("Getting available trickles");
-
-            var utcNow = _timeProvider.GetUtcNow().UtcDateTime;
-            var currentDate = DateOnly.FromDateTime(utcNow);
-            var currentDayOfWeek = utcNow.DayOfWeek.ToString();
-
-            var availableTrickles = await GetAvailableTrickleEntitiesAsync(currentDate, currentDayOfWeek);
-
-            return [.. availableTrickles.Select(t => new AvailableTrickleDto(
-                t.Id,
-                t.Title,
-                t.Text,
-                t.Score,
-                t.Availability is not null ? MapAvailabilityToDto(t.Availability) : null,
-                t.AttemptsPerTrickle
-            ))];
-        }
-
         public async Task<UserTrickleProgressDto> GetAvailableTrickleForUserAsync(string userId)
         {
             _logger.LogInformation("Getting available trickle for user {UserId}", userId);
@@ -299,7 +279,6 @@ namespace Trickler_API.Services
                 trickle.RewardText,
                 trickle.Availability is not null ? MapAvailabilityToDto(trickle.Availability) : null,
                 trickle.AttemptsPerTrickle,
-                userTrickle?.AttemptCountTotal > 0,
                 attemptsLeft,
                 userTrickle?.IsSolved ?? false,
                 userTrickle?.CurrentScore ?? trickle.Score

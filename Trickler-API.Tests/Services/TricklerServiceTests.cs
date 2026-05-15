@@ -432,19 +432,6 @@ namespace Trickler_API.Tests.Services
         }
 
         [Fact]
-        public async Task GetAvailableTricklesAsync_ReturnsAllTricklesWithNoAvailability()
-        {
-            var t1 = new Trickle { Title = "Q1", Text = "Q1 text" };
-            var t2 = new Trickle { Title = "Q2", Text = "Q2 text" };
-            _context.Trickles.AddRange(t1, t2);
-            await _context.SaveChangesAsync();
-
-            var result = await _service.GetAvailableTricklesAsync();
-
-            Assert.Equal(2, result.Count);
-        }
-
-        [Fact]
         public async Task GetAvailableTrickleForUserAsync_ReturnsHydratedUserState()
         {
             var currentUtc = new DateTimeOffset(2026, 5, 15, 0, 0, 0, TimeSpan.Zero);
@@ -470,7 +457,6 @@ namespace Trickler_API.Tests.Services
 
             Assert.Equal("user-1", result.UserId);
             var item = Assert.IsType<HydratedTrickleDto>(result.Trickle);
-            Assert.True(item.HasAttempted);
             Assert.Equal(90, item.CurrentScore);
             Assert.Equal(4, item.AttemptsLeft);
             Assert.False(item.IsSolved);
@@ -534,169 +520,6 @@ namespace Trickler_API.Tests.Services
             var firstTrickle = Assert.IsType<HydratedTrickleDto>(first.Trickle);
             var secondTrickle = Assert.IsType<HydratedTrickleDto>(second.Trickle);
             Assert.NotEqual(firstTrickle.Id, secondTrickle.Id);
-        }
-
-        [Fact]
-        public async Task GetAvailableTricklesAsync_FiltersDateRangeAvailability()
-        {
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            var tomorrow = today.AddDays(1);
-            var yesterday = today.AddDays(-1);
-
-            // Trickle within range
-            var availabilityInRange = new Availability
-            {
-                Type = AvailabilityType.DateRange,
-                From = yesterday,
-                Until = tomorrow
-            };
-            _context.Availabilities.Add(availabilityInRange);
-            await _context.SaveChangesAsync();
-
-            // Trickle before range
-            var availabilityBefore = new Availability
-            {
-                Type = AvailabilityType.DateRange,
-                From = null,
-                Until = yesterday
-            };
-            _context.Availabilities.Add(availabilityBefore);
-            await _context.SaveChangesAsync();
-
-            // Trickle after range
-            var availabilityAfter = new Availability
-            {
-                Type = AvailabilityType.DateRange,
-                From = tomorrow,
-                Until = null
-            };
-            _context.Availabilities.Add(availabilityAfter);
-            await _context.SaveChangesAsync();
-
-            var t1 = new Trickle { Title = "Q1", Text = "In range", AvailabilityId = availabilityInRange.Id };
-            var t2 = new Trickle { Title = "Q2", Text = "Before range", AvailabilityId = availabilityBefore.Id };
-            var t3 = new Trickle { Title = "Q3", Text = "After range", AvailabilityId = availabilityAfter.Id };
-            _context.Trickles.AddRange(t1, t2, t3);
-            await _context.SaveChangesAsync();
-
-            var result = await _service.GetAvailableTricklesAsync();
-
-            Assert.Single(result);
-            Assert.Equal("Q1", result[0].Title);
-        }
-
-        [Fact]
-        public async Task GetAvailableTricklesAsync_FiltersSpecificDatesAvailability()
-        {
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            var tomorrow = today.AddDays(1);
-
-            var availabilityWithToday = new Availability
-            {
-                Type = AvailabilityType.SpecificDates,
-                Dates = [today, tomorrow]
-            };
-            _context.Availabilities.Add(availabilityWithToday);
-            await _context.SaveChangesAsync();
-
-            var availabilityWithoutToday = new Availability
-            {
-                Type = AvailabilityType.SpecificDates,
-                Dates = [tomorrow.AddDays(1), tomorrow.AddDays(2)]
-            };
-            _context.Availabilities.Add(availabilityWithoutToday);
-            await _context.SaveChangesAsync();
-
-            var t1 = new Trickle { Title = "Q1", Text = "Has today", AvailabilityId = availabilityWithToday.Id };
-            var t2 = new Trickle { Title = "Q2", Text = "No today", AvailabilityId = availabilityWithoutToday.Id };
-            _context.Trickles.AddRange(t1, t2);
-            await _context.SaveChangesAsync();
-
-            var result = await _service.GetAvailableTricklesAsync();
-
-            Assert.Single(result);
-            Assert.Equal("Q1", result[0].Title);
-        }
-
-        [Fact]
-        public async Task GetAvailableTricklesAsync_FiltersWeeklyAvailability()
-        {
-            var today = DateTime.UtcNow;
-            var todayDayOfWeek = today.DayOfWeek.ToString();
-
-            var availabilityTodayOnly = new Availability
-            {
-                Type = AvailabilityType.Weekly,
-                DaysOfWeek = [todayDayOfWeek]
-            };
-            _context.Availabilities.Add(availabilityTodayOnly);
-            await _context.SaveChangesAsync();
-
-            var availabilityOtherDays = new Availability
-            {
-                Type = AvailabilityType.Weekly,
-                DaysOfWeek = [today.AddDays(1).DayOfWeek.ToString()]
-            };
-            _context.Availabilities.Add(availabilityOtherDays);
-            await _context.SaveChangesAsync();
-
-            var t1 = new Trickle { Title = "Q1", Text = "Today", AvailabilityId = availabilityTodayOnly.Id };
-            var t2 = new Trickle { Title = "Q2", Text = "Other days", AvailabilityId = availabilityOtherDays.Id };
-            _context.Trickles.AddRange(t1, t2);
-            await _context.SaveChangesAsync();
-
-            var result = await _service.GetAvailableTricklesAsync();
-
-            Assert.Single(result);
-            Assert.Equal("Q1", result[0].Title);
-        }
-
-        [Fact]
-        public async Task GetAvailableTricklesAsync_MixedAvailability()
-        {
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            var todayDayOfWeek = DateTime.UtcNow.DayOfWeek.ToString();
-
-            // No availability
-            var t1 = new Trickle { Title = "Q1", Text = "No availability" };
-
-            // Date range available
-            var dateRangeAvailability = new Availability
-            {
-                Type = AvailabilityType.DateRange,
-                From = today.AddDays(-1),
-                Until = today.AddDays(1)
-            };
-            _context.Availabilities.Add(dateRangeAvailability);
-            await _context.SaveChangesAsync();
-            var t2 = new Trickle { Title = "Q2", Text = "Date range", AvailabilityId = dateRangeAvailability.Id };
-
-            // Specific date available
-            var specificDateAvailability = new Availability
-            {
-                Type = AvailabilityType.SpecificDates,
-                Dates = [today]
-            };
-            _context.Availabilities.Add(specificDateAvailability);
-            await _context.SaveChangesAsync();
-            var t3 = new Trickle { Title = "Q3", Text = "Specific date", AvailabilityId = specificDateAvailability.Id };
-
-            // Weekly available
-            var weeklyAvailability = new Availability
-            {
-                Type = AvailabilityType.Weekly,
-                DaysOfWeek = [todayDayOfWeek]
-            };
-            _context.Availabilities.Add(weeklyAvailability);
-            await _context.SaveChangesAsync();
-            var t4 = new Trickle { Title = "Q4", Text = "Weekly", AvailabilityId = weeklyAvailability.Id };
-
-            _context.Trickles.AddRange(t1, t2, t3, t4);
-            await _context.SaveChangesAsync();
-
-            var result = await _service.GetAvailableTricklesAsync();
-
-            Assert.Equal(4, result.Count);
         }
     }
 }

@@ -21,15 +21,6 @@ namespace Trickler_API.DTO
         int AttemptsPerTrickle
     );
 
-    public record AvailableTrickleDto(
-        int Id,
-        string Title,
-        string Text,
-        int Score,
-        AvailabilityDto? Availability,
-        int AttemptsPerTrickle
-    );
-
     public record HydratedTrickleDto(
         int Id,
         string Title,
@@ -38,7 +29,6 @@ namespace Trickler_API.DTO
         string RewardText,
         AvailabilityDto? Availability,
         int AttemptsPerTrickle,
-        bool HasAttempted,
         int AttemptsLeft,
         bool IsSolved,
         int CurrentScore
