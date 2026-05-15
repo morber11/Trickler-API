@@ -30,5 +30,26 @@ namespace Trickler_API.Controllers
 
             return Ok(dto);
         }
+
+        [HttpPut("{userId}/visibility")]
+        [Authorize(Roles = RoleConstants.AdminOrUser)]
+        public async Task<IActionResult> UpdateVisibility(string userId, [FromBody] UpdateUserVisibilityRequest request)
+        {
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var isAdmin = User.IsInRole(RoleConstants.Admin);
+
+            if (!isAdmin && !string.Equals(currentUserId, userId, StringComparison.Ordinal))
+            {
+                return Forbid();
+            }
+
+            var dto = await _userDetailsService.UpdateUserPrivacyAsync(userId, request.IsPrivate);
+            if (dto is null)
+            {
+                return NotFound(new MessageResponse(MessageConstants.Account.UserNotFound));
+            }
+
+            return Ok(dto);
+        }
     }
 }

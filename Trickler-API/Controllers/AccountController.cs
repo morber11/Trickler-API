@@ -120,6 +120,7 @@ namespace Trickler_API.Controllers
         /// </summary>
         /// <param name="request">Old and new password values.</param>
         /// <returns>200 on success, 400 for invalid request or failure, 401 if not authenticated, 500 on server error.</returns>
+        /// TODO: this should not allow you to change your password to the current password - currently it does
         [HttpPost("change-password")]
         [Authorize]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)

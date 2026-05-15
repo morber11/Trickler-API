@@ -123,6 +123,27 @@ namespace Trickler_API.Services
                 entity.CurrentScore);
         }
 
+        public async Task<UserDetailsResponseDto?> UpdateUserPrivacyAsync(string userId, bool isPrivate)
+        {
+            var entity = await _context.Set<UserDetails>().SingleOrDefaultAsync(u => u.UserId == userId);
+            if (entity is null)
+            {
+                return null;
+            }
+
+            entity.IsPrivate = isPrivate;
+            await _context.SaveChangesAsync();
+
+            var userName = await GetUserNameForIdAsync(userId);
+            return new UserDetailsResponseDto(
+                entity.Id,
+                entity.UserId,
+                entity.TotalScore,
+                entity.IsPrivate,
+                userName,
+                entity.CurrentScore);
+        }
+
         public async Task UpdateUserScoreAsync(string userId, int scoreToAdd)
         {
             if (string.IsNullOrWhiteSpace(userId)) throw new ArgumentException(null, nameof(userId));

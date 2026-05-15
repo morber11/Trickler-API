@@ -89,5 +89,36 @@ namespace Trickler_API.Tests.Services
             Assert.Equal("alice", dto.Username);
         }
 
+        [Fact]
+        public async Task UpdateUserPrivacyAsync_ExistingUser_UpdatesIsPrivate()
+        {
+            var userId = "user-private";
+            _context.Set<UserDetails>().Add(new UserDetails
+            {
+                UserId = userId,
+                TotalScore = 12,
+                CurrentScore = 4,
+                IsPrivate = false,
+            });
+            await _context.SaveChangesAsync();
+
+            var dto = await _service.UpdateUserPrivacyAsync(userId, true);
+
+            Assert.NotNull(dto);
+            Assert.True(dto!.IsPrivate);
+            Assert.Equal(12, dto.TotalScore);
+
+            var entity = await _context.Set<UserDetails>().SingleAsync(u => u.UserId == userId);
+            Assert.True(entity.IsPrivate);
+        }
+
+        [Fact]
+        public async Task UpdateUserPrivacyAsync_MissingUser_ReturnsNull()
+        {
+            var dto = await _service.UpdateUserPrivacyAsync("missing-user", true);
+
+            Assert.Null(dto);
+        }
+
     }
 }
